@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sūtradhāra — AI Productivity Orchestrator</title>
+    <meta name="description" content="Multi-agent AI system that manages your calendar and tasks through natural language">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <!-- ═══════════════════ HEADER ═══════════════════ -->
+    <header id="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <img src="logo.png" alt="Sūtradhāra" class="logo-icon">
+                <h1>Sūtradhāra</h1>
+                <span class="badge">AI Crew</span>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="status-indicator" id="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Ready</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="btn-icon" id="btn-history" title="History">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+            </button>
+            <button class="btn-icon" id="btn-settings" title="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+    <main id="app-main">
+        <!-- ─── LEFT: Chat + Input ─── -->
+        <section class="panel panel-chat" id="panel-chat">
+            <div class="panel-header">
+                <h2>💬 Command Center</h2>
+                <span class="panel-badge">Natural Language</span>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <div class="message message-system">
+                    <div class="message-avatar"><img src="logo.png" alt="S" class="avatar-logo"></div>
+                    <div class="message-content">
+                        <p>Namaste! I'm <strong>Sūtradhāra</strong>, your AI productivity crew.</p>
+                        <p>I can manage your <strong>Google Calendar</strong> and <strong>Notion tasks</strong> through natural language.</p>
+                        <div class="suggestion-chips">
+                            <button class="chip" data-query="What meetings do I have tomorrow?">📅 Tomorrow's meetings</button>
+                            <button class="chip" data-query="Create a task called 'Review PR #42' in my Notion board">📝 Create a task</button>
+                            <button class="chip" data-query="Schedule 2 hours of focus time this week for my high-priority tasks">🧠 Schedule focus time</button>
+                            <button class="chip" data-query="Give me my daily briefing">🌅 Daily briefing</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea
+                        id="chat-input"
+                        placeholder="Ask Sūtradhāra anything…"
+                        rows="1"
+                        autofocus
+                    ></textarea>
+                    <button class="btn-send" id="btn-send" title="Send">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── RIGHT: Trace + Workflow ─── -->
+        <section class="panel panel-trace" id="panel-trace">
+            <div class="panel-tabs">
+                <button class="tab active" data-tab="trace">🔍 Live Trace</button>
+                <button class="tab" data-tab="workflow">📊 Workflow</button>
+                <button class="tab" data-tab="history">📜 History</button>
+            </div>
+
+            <!-- ─── Tab: Live Trace ─── -->
+            <div class="tab-content active" id="tab-trace">
+                <div class="trace-timeline" id="trace-timeline">
+                    <div class="trace-empty">
+                        <div class="trace-empty-icon">🔍</div>
+                        <p>Agent trace will appear here when you send a query.</p>
+                        <p class="text-muted">Watch the agents think in real-time!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Tab: Workflow Diagram ─── -->
+            <div class="tab-content" id="tab-workflow">
+                <div class="workflow-container" id="workflow-container">
+                    <div class="trace-empty">
+                        <div class="trace-empty-icon">📊</div>
+                        <p>Workflow diagrams appear here for multi-step queries.</p>
+                        <p class="text-muted">The Planner agent generates visual workflow plans!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── Tab: History ─── -->
+            <div class="tab-content" id="tab-history">
+                <div class="history-list" id="history-list">
+                    <div class="trace-empty">
+                        <div class="trace-empty-icon">📜</div>
+                        <p>Your conversation history will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ═══════════════════ TOAST CONTAINER ═══════════════════ -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
