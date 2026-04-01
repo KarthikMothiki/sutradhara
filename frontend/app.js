@@ -5,7 +5,7 @@
 
 // ── Configuration ──────────────────────────────────────────────
 // Important: After deploying to Cloud Run, replace this placeholder with your actual Cloud Run URL
-const CLOUD_RUN_URL = 'https://YOUR-CLOUD-RUN-URL.run.app';
+const CLOUD_RUN_URL = 'https://sutradhara-agent-716237412278.us-central1.run.app';
 
 // Determine backend URL based on whether frontend is running locally or mapped to GitHub Pages
 const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
