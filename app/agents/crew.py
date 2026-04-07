@@ -600,6 +600,8 @@ def _get_notion_function_tools() -> list:
         status: str = "",
         priority: str = "",
         title: str = "",
+        deadline: str = "",
+        due_date: str = "",
     ) -> dict:
         """Update a Notion page's properties.
 
@@ -608,6 +610,8 @@ def _get_notion_function_tools() -> list:
             status: New status value (optional)
             priority: New priority value (optional)
             title: New title (optional)
+            deadline: New deadline date in ISO format like YYYY-MM-DD (optional, maps to "Deadline" property)
+            due_date: New due date in ISO format like YYYY-MM-DD (optional, maps to "Due Date" property)
 
         Returns:
             Confirmation or error.
@@ -622,9 +626,13 @@ def _get_notion_function_tools() -> list:
                 properties["Priority"] = {"select": {"name": priority}}
             if title:
                 properties["Name"] = {"title": [{"text": {"content": title}}]}
+            if deadline:
+                properties["Deadline"] = {"date": {"start": deadline}}
+            if due_date:
+                properties["Due Date"] = {"date": {"start": due_date}}
 
             if not properties:
-                return {"error": "No properties to update. Provide status, priority, or title."}
+                return {"error": "No properties to update. Provide status, priority, title, deadline, or due_date."}
 
             resp = httpx.patch(
                 f"https://api.notion.com/v1/pages/{page_id}",
@@ -764,23 +772,89 @@ async def run_agent_query(
     diagram = None
 
     try:
-        async for event in runner.run_async(
-            user_id=user_id,
-            session_id=session.id,
-            new_message=user_content,
-        ):
-            # Collect the final response text
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if hasattr(part, "text") and part.text:
-                        response_text += part.text
+        from app.database.engine import get_session_factory
+        from app.database.models import WorkflowRun, WorkflowRunStatus
+        factory = get_session_factory()
+        
+        async with factory() as db_session:
+            async for event in runner.run_async(
+                user_id=user_id,
+                session_id=session.id,
+                new_message=user_content,
+            ):
+                # Collect the final response text
+                if event.content and event.content.parts:
+                    for part in event.content.parts:
+                        if hasattr(part, "text") and part.text:
+                            response_text += part.text
+                        
+                        # Intercept the tool calls to save trace to DB and emit to Live Trace
+                        if getattr(part, "function_call", None):
+                            tool_name = part.function_call.name
+                            try:
+                                args = dict(part.function_call.args)
+                            except Exception:
+                                args = {}
+                                
+                            # Deduce which specialist is acting based on the tool
+                            specialist_map = {
+                                "list_events": "calendar_specialist",
+                                "create_event": "calendar_specialist",
+                                "update_event": "calendar_specialist",
+                                "delete_event": "calendar_specialist",
+                                "find_free_slots": "calendar_specialist",
+                                "query_notion_database": "notion_specialist",
+                                "create_notion_page": "notion_specialist",
+                                "update_notion_page": "notion_specialist",
+                                "search_notion": "notion_specialist",
+                                "generate_workflow_diagram": "planner",
+                                "log_focus_progress": "focus_agent",
+                                "schedule_focus_time": "focus_agent",
+                                "get_priority_targets": "focus_agent",
+                                "undo_last_action": "manager",
+                                "undo_conversation_actions": "manager",
+                                "log_reversible_action": "manager",
+                                "transfer_to_agent": "manager"
+                            }
+                            author = specialist_map.get(tool_name, "manager")
+                                
+                            from app.services.trace_service import trace_service
+                            asyncio.create_task(trace_service.emit_tool_call(
+                                adk_session_id, author, tool_name, args
+                            ))
+                            
+                            try:
+                                import json
+                                safe_args = args
+                                try:
+                                    json.dumps(args)
+                                except TypeError:
+                                    safe_args = {"raw": str(args)}
 
-            # Check for workflow diagram in session state
-            if hasattr(event, "actions") and event.actions:
-                for action in event.actions:
-                    if hasattr(action, "state_delta") and action.state_delta:
-                        if "workflow_diagram" in action.state_delta:
-                            diagram = action.state_delta["workflow_diagram"]
+                                wr_tool = WorkflowRun(
+                                    conversation_id=conversation_id or adk_session_id,
+                                    agent_name=author,
+                                    tool_called=tool_name,
+                                    input_data=safe_args,
+                                    status=WorkflowRunStatus.COMPLETED
+                                )
+                                db_session.add(wr_tool)
+                                await db_session.commit()
+                            except Exception as db_err:
+                                logger.error(f"Failed to record tool WorkflowRun: {db_err}")
+
+                            # Specific interception for generate_workflow_diagram tool
+                            if tool_name == "generate_workflow_diagram":
+                                try:
+                                    steps = args.get("steps", [])
+                                    title = args.get("title", "Workflow Plan")
+                                    # Call it synchronously to get the Mermaid string
+                                    d_res = generate_workflow_diagram(steps=steps, title=title)
+                                    if d_res and "diagram" in d_res and d_res["diagram"]:
+                                        diagram = d_res["diagram"]
+                                        asyncio.create_task(trace_service.emit_workflow_diagram(adk_session_id, diagram))
+                                except Exception as call_err:
+                                    logger.error(f"Failed to intercept diagram parameters: {call_err}")
 
     except Exception as e:
         logger.error(f"Agent execution error: {e}", exc_info=True)
@@ -790,18 +864,15 @@ async def run_agent_query(
             "diagram": None,
         }
 
-    # Check if the session state has a diagram
+    # If diagram wasn't captured from the tool, try to extract from raw markdown response
     if not diagram:
-        try:
-            current_session = await session_service.get_session(
-                app_name=APP_NAME,
-                user_id=user_id,
-                session_id=session.id,
-            )
-            if current_session and hasattr(current_session, 'state'):
-                diagram = current_session.state.get("workflow_diagram")
-        except Exception:
-            pass
+        import re
+        mermaid_match = re.search(r"```mermaid\s*(.*?)\s*```", response_text, re.DOTALL | re.IGNORECASE)
+        if mermaid_match:
+            diagram = mermaid_match.group(1).strip()
+            # Optionally broadcast it instantly to any open WebSockets
+            from app.services.trace_service import trace_service
+            asyncio.create_task(trace_service.emit_workflow_diagram(adk_session_id, diagram))
 
     return {
         "response": response_text or "No response generated.",

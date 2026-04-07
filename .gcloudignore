@@ -1,0 +1,16 @@
+# .gcloudignore
+# This file tells Google Cloud which files to IGNORE when deploying.
+# By creating this file, gcloud stops looking at .gitignore
+# which allows it to actually upload your sensitive .env and calendar credential files
+# securely into the final container.
+
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.pyc
+tests/
+frontend/
+.pytest_cache/
+.github/

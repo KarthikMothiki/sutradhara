@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database.engine import get_db
-from app.database.models import ActionLog, Conversation, ConversationStatus, WorkflowRun
+from app.database.models import ActionLog, Conversation, ConversationStatus, WorkflowRun, WorkflowRunStatus
 from app.database.schemas import (
     ConversationResponse,
     ConversationSummary,
@@ -91,6 +91,16 @@ async def _process_query(
                 conversation_id, "manager", {"query": query}
             )
 
+            # Save start to workflow run
+            wr_start = WorkflowRun(
+                conversation_id=conversation_id,
+                agent_name="manager",
+                status=WorkflowRunStatus.RUNNING,
+                input_data={"query": query}
+            )
+            session.add(wr_start)
+            await session.commit()
+
             # Run the agent crew
             from app.agents.crew import run_agent_query
 
@@ -109,6 +119,15 @@ async def _process_query(
             conv.final_response = agent_result.get("response", "No response generated.")
             conv.workflow_diagram = agent_result.get("diagram")
             conv.status = ConversationStatus.COMPLETED
+            
+            # Save end to workflow run
+            wr_end = WorkflowRun(
+                conversation_id=conversation_id,
+                agent_name="manager",
+                status=WorkflowRunStatus.COMPLETED,
+                output_data={"response": conv.final_response[:200]}
+            )
+            session.add(wr_end)
             await session.commit()
 
             # Emit trace end

@@ -44,16 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initMermaid() {
+    const isLight = localStorage.getItem('theme') === 'light';
     mermaid.initialize({
         startOnLoad: false,
-        theme: 'dark',
+        theme: isLight ? 'default' : 'dark',
         themeVariables: {
             primaryColor: '#8b5cf6',
-            primaryTextColor: '#e8e8f0',
+            primaryTextColor: isLight ? '#0f172a' : '#e8e8f0',
             primaryBorderColor: '#6d28d9',
-            lineColor: '#6060780',
-            secondaryColor: '#1a1a28',
-            tertiaryColor: '#12121a',
+            lineColor: isLight ? '#94a3b8' : '#6060780',
+            secondaryColor: isLight ? '#f1f5f9' : '#1a1a28',
+            tertiaryColor: isLight ? '#f8fafc' : '#12121a',
             fontFamily: 'Inter, sans-serif',
         },
     });
@@ -95,6 +96,39 @@ function setupEventListeners() {
         switchTab('history');
         loadHistory();
     });
+
+    // Theme toggle button
+    const btnTheme = document.getElementById('btn-settings');
+    if (btnTheme) {
+        btnTheme.title = "Toggle Theme";
+        const svgMoon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+        const svgSun = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+        
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+            btnTheme.innerHTML = svgSun;
+        } else {
+            btnTheme.innerHTML = svgMoon;
+        }
+
+        btnTheme.addEventListener('click', () => {
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            btnTheme.innerHTML = isLight ? svgSun : svgMoon;
+            
+            // Reinitialize mermaid for future diagrams
+            initMermaid();
+        });
+    }
+
+    // Logo click to return to new chat
+    const logoBlock = document.querySelector('.logo');
+    if (logoBlock) {
+        logoBlock.style.cursor = 'pointer';
+        logoBlock.addEventListener('click', () => {
+            window.location.reload();
+        });
+    }
 }
 
 // ── API Functions ──────────────────────────────────────────────
@@ -271,7 +305,7 @@ function disconnectWebSocket() {
 
 function handleTraceEvent(event) {
     const iconMap = {
-        agent_start: '🚀',
+        agent_start: '💭',
         agent_end: '✅',
         tool_call: '🔧',
         tool_result: '📦',
@@ -283,29 +317,44 @@ function handleTraceEvent(event) {
     let title = '';
     let subtitle = '';
 
+    const formatAgentName = (name) => {
+        if (!name) return 'System';
+        const formatted = name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        if (name.includes('manager')) return `🧠 ${formatted}`;
+        if (name.includes('calendar')) return `📅 ${formatted}`;
+        if (name.includes('notion')) return `📝 ${formatted}`;
+        if (name.includes('planner')) return `🗺️ ${formatted}`;
+        if (name.includes('focus')) return `🎯 ${formatted}`;
+        return `🤖 ${formatted}`;
+    };
+
+    const displayAgent = event.agent_name ? formatAgentName(event.agent_name) : 'Agent';
+
     switch (event.event_type) {
         case 'agent_start':
-            title = `${event.agent_name} started`;
-            subtitle = event.data?.query ? `"${event.data.query.substring(0, 60)}…"` : '';
+            title = `${displayAgent} thinking...`;
+            subtitle = event.data?.query ? `"${event.data.query.substring(0, 100)}…"` : '';
             break;
         case 'agent_end':
-            title = `${event.agent_name} finished`;
-            subtitle = event.data?.response ? event.data.response.substring(0, 80) : '';
+            let shortRes = event.data?.response ? event.data.response.substring(0, 80) : '';
+            title = `${displayAgent} finished analysis`;
+            subtitle = shortRes ? `Ready with response: ${shortRes}…` : '';
             break;
         case 'tool_call':
-            title = `Calling ${event.tool_name}`;
-            subtitle = `via ${event.agent_name}`;
+            title = `${displayAgent} executing action`;
+            subtitle = `Calling tool: ${event.tool_name}()`;
             break;
         case 'tool_result':
-            title = `${event.tool_name} returned`;
-            subtitle = event.data ? JSON.stringify(event.data).substring(0, 80) : '';
+            title = `${event.tool_name}() returned data`;
+            subtitle = event.data ? JSON.stringify(event.data).substring(0, 100) : '';
             break;
         case 'error':
             title = 'Error';
             subtitle = event.data?.error || '';
             break;
         case 'workflow_diagram':
-            title = 'Workflow diagram generated';
+            title = `🧠 Manager Agent generating the workflow...`;
+            subtitle = 'Live diagram updated';
             if (event.data?.diagram) {
                 renderDiagram(event.data.diagram);
             }
@@ -475,12 +524,28 @@ async function viewConversation(conversationId) {
 
         // Show trace events
         clearTrace();
+
+        const formatAgentName = (name) => {
+            if (!name) return 'System';
+            const formatted = name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            if (name.includes('manager')) return `🧠 ${formatted}`;
+            if (name.includes('calendar')) return `📅 ${formatted}`;
+            if (name.includes('notion')) return `📝 ${formatted}`;
+            if (name.includes('planner')) return `🗺️ ${formatted}`;
+            if (name.includes('focus')) return `🎯 ${formatted}`;
+            return `🤖 ${formatted}`;
+        };
+
         data.workflow_runs.forEach(wr => {
+            const displayAgentName = wr.agent_name ? formatAgentName(wr.agent_name) : 'Agent';
+            
+            const isTool = !!wr.tool_called;
+            
             addTraceEvent(
-                wr.status === 'completed' ? 'agent-end' : 'tool-call',
-                wr.status === 'completed' ? '✅' : '🔧',
-                `${wr.agent_name}${wr.tool_called ? ' → ' + wr.tool_called : ''}`,
-                wr.status,
+                isTool ? 'tool_call' : 'agent_end',
+                isTool ? '🔧' : '✅',
+                `${displayAgentName} ${isTool ? 'executing tool: ' + wr.tool_called : 'finished processing'}`,
+                isTool ? 'Tool execution' : 'Agent finished analysis',
                 new Date(wr.created_at).toLocaleTimeString()
             );
         });

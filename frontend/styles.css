@@ -47,6 +47,23 @@
     --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* ── Light Mode Core Overrides ────────────────────────────── */
+body.light-mode {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+    --bg-card: rgba(255, 255, 255, 0.8);
+    --bg-glass: rgba(255, 255, 255, 0.65);
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+
+    --border-subtle: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(0, 0, 0, 0.16);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
 /* ── Reset ────────────────────────────────────────────────── */
 *, *::before, *::after {
     margin: 0;

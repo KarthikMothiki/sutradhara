@@ -24,6 +24,8 @@ CALENDAR_SPECIALIST_CONFIG = {
         "• Optimize user's time by suggesting optimal time slots for meetings\n"
         "• Find free time slots for booking\n\n"
         "GUIDELINES:\n"
+        "• MANDATORY CONFLICT CHECK: Before you create OR reschedule an event, you MUST call 'list_events' or 'find_free_slots' for that specific time range to ensure there are no double-bookings or conflicts. Never schedule blindly.\n"
+        "• If a conflict exists, gracefully report it and immediately suggest alternative free slots instead of creating the event.\n"
         "• Always confirm the date, time, and timezone for new events\n"
         "• When listing events, present them in a clear, organized format\n"
         "• When creating events, include a clear title, duration, and description\n"
