@@ -3,125 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sūtradhāra — AI Productivity Orchestrator</title>
-    <meta name="description" content="Multi-agent AI system that manages your calendar and tasks through natural language">
+    <title>Sūtradhāra — AI Productivity OS</title>
+    <meta name="description" content="AI Chief of Staff for knowledge workers — context-aware, stateful, and it asks before it acts.">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 </head>
 <body>
-    <!-- ═══════════════════ HEADER ═══════════════════ -->
-    <header id="app-header">
-        <div class="header-left">
-            <div class="logo">
-                <img src="logo.png" alt="Sūtradhāra" class="logo-icon">
-                <h1>Sūtradhāra</h1>
-                <span class="badge">AI Crew</span>
-            </div>
-        </div>
-        <div class="header-center">
-            <div class="status-indicator" id="status-indicator">
-                <span class="status-dot"></span>
-                <span class="status-text">Ready</span>
-            </div>
-        </div>
-        <div class="header-right">
-            <button class="btn-icon" id="btn-history" title="History">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
-            </button>
-            <button class="btn-icon" id="btn-settings" title="Settings">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-            </button>
-        </div>
-    </header>
+    <div class="sutradhara-os">
+        <!-- ─── COLUMN 1: Command Center (Left) ─── -->
+        <aside class="col col-command" id="col-command">
+            <header class="col-header">
+                <div class="logo">
+                    <img src="logo.png" alt="S" class="logo-icon">
+                    <h1>Sūtradhāra</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="btn-demo" class="btn-ghost" title="Demo Mode">🎬</button>
+                    <button id="btn-settings" class="btn-ghost" title="Settings">⚙️</button>
+                </div>
+            </header>
 
-    <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
-    <main id="app-main">
-        <!-- ─── LEFT: Chat + Input ─── -->
-        <section class="panel panel-chat" id="panel-chat">
-            <div class="panel-header">
-                <h2>💬 Command Center</h2>
-                <span class="panel-badge">Natural Language</span>
-            </div>
-
-            <div class="chat-messages" id="chat-messages">
-                <div class="message message-system">
-                    <div class="message-avatar"><img src="logo.png" alt="S" class="avatar-logo"></div>
-                    <div class="message-content">
-                        <p>Namaste! I'm <strong>Sūtradhāra</strong>, your AI productivity crew.</p>
-                        <p>I can manage your <strong>Google Calendar</strong> and <strong>Notion tasks</strong> through natural language.</p>
-                        <div class="suggestion-chips">
-                            <button class="chip" data-query="What meetings do I have tomorrow?">📅 Tomorrow's meetings</button>
-                            <button class="chip" data-query="Create a task called 'Review PR #42' in my Notion board">📝 Create a task</button>
-                            <button class="chip" data-query="Schedule 2 hours of focus time this week for my high-priority tasks">🧠 Schedule focus time</button>
-                            <button class="chip" data-query="Give me my daily briefing">🌅 Daily briefing</button>
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be injected here -->
+                    <div class="message message-system">
+                        <div class="message-content">
+                            <p><strong>Sūtradhāra at your service.</strong></p>
+                            <p>How can I help hold the strings of your workday today?</p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="chat-input-container">
-                <div class="chat-input-wrapper">
-                    <textarea
-                        id="chat-input"
-                        placeholder="Ask Sūtradhāra anything…"
-                        rows="1"
-                        autofocus
-                    ></textarea>
-                    <button class="btn-send" id="btn-send" title="Send">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2z"/></svg>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ─── RIGHT: Trace + Workflow ─── -->
-        <section class="panel panel-trace" id="panel-trace">
-            <div class="panel-tabs">
-                <button class="tab active" data-tab="trace">🔍 Live Trace</button>
-                <button class="tab" data-tab="workflow">📊 Workflow</button>
-                <button class="tab" data-tab="history">📜 History</button>
-            </div>
-
-            <!-- ─── Tab: Live Trace ─── -->
-            <div class="tab-content active" id="tab-trace">
-                <div class="trace-timeline" id="trace-timeline">
-                    <div class="trace-empty">
-                        <div class="trace-empty-icon">🔍</div>
-                        <p>Agent trace will appear here when you send a query.</p>
-                        <p class="text-muted">Watch the agents think in real-time!</p>
+                <div class="chat-input-area">
+                    <div class="suggestion-tray">
+                        <button class="chip" data-query="Run conflict detection for the next 7 days">⚠️ Conflict check</button>
+                        <button class="chip" data-query="Find a 2-hour free slot tomorrow">📅 Book Deep Work</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea id="chat-input" placeholder="Give a command..." rows="1"></textarea>
+                        <button id="btn-voice" class="btn-voice" title="Voice Command">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                        </button>
+                        <button id="btn-send" class="btn-send" title="Send (Enter)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
+        </aside>
 
-            <!-- ─── Tab: Workflow Diagram ─── -->
-            <div class="tab-content" id="tab-workflow">
-                <div class="workflow-container" id="workflow-container">
-                    <div class="trace-empty">
-                        <div class="trace-empty-icon">📊</div>
-                        <p>Workflow diagrams appear here for multi-step queries.</p>
-                        <p class="text-muted">The Planner agent generates visual workflow plans!</p>
-                    </div>
+        <!-- ─── COLUMN 2: Live Canvas (Center) ─── -->
+        <main class="col col-canvas" id="col-canvas">
+            <header class="col-header sticky-header">
+                <h2>Live Canvas <span class="badge">Action Theater</span></h2>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Ready</span>
+                </div>
+            </header>
+
+            <div class="canvas-content" id="canvas-content">
+                <!-- BriefingCard (pinned) -->
+                <div id="briefing-anchor"></div>
+                
+                <!-- Action Theater Cards will be injected here -->
+                <div class="canvas-empty">
+                    <div class="empty-illustration">🎭</div>
+                    <h3>Your Action Theater</h3>
+                    <p>Agent outputs, calendar cards, and draft approvals will appear here as they happen.</p>
                 </div>
             </div>
 
-            <!-- ─── Tab: History ─── -->
-            <div class="tab-content" id="tab-history">
-                <div class="history-list" id="history-list">
-                    <div class="trace-empty">
-                        <div class="trace-empty-icon">📜</div>
-                        <p>Your conversation history will appear here.</p>
+            <!-- Impact Panel (Sticky Footer) -->
+            <footer class="impact-panel" id="impact-panel">
+                <div class="impact-stat">
+                    <span class="stat-value" id="stat-conflicts">0</span>
+                    <span class="stat-label">conflicts resolved</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="impact-stat">
+                    <span class="stat-value" id="stat-tasks">0</span>
+                    <span class="stat-label">tasks updated</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="impact-stat">
+                    <span class="stat-value" id="stat-minutes">0</span>
+                    <span class="stat-label">min reclaimed</span>
+                </div>
+            </footer>
+        </main>
+
+        <!-- ─── COLUMN 3: The Loom (Right) ─── -->
+        <aside class="col col-loom" id="col-loom">
+            <header class="col-header">
+                <h2>The Loom <span class="badge">Agent Cortex</span></h2>
+                <button id="btn-share" class="btn-ghost" title="Share Session Replay">🔗</button>
+            </header>
+
+            <div class="loom-content">
+                <!-- Mermaid Workflow -->
+                <div class="workflow-section">
+                    <div id="workflow-container" class="mermaid-container">
+                        <!-- Mermaid diagram injected here -->
+                    </div>
+                </div>
+
+                <!-- Filtered Trace Logs -->
+                <div class="trace-section">
+                    <div class="trace-header">
+                        <h3>Process Logs</h3>
+                        <span class="text-muted" id="filter-status">All Agents</span>
+                    </div>
+                    <div class="trace-logs" id="trace-timeline">
+                        <!-- Log entries injected here -->
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
+        </aside>
+    </div>
 
-    <!-- ═══════════════════ TOAST CONTAINER ═══════════════════ -->
-    <div class="toast-container" id="toast-container"></div>
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="app.js"></script>
 </body>

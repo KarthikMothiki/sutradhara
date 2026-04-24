@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     # ── Model Fallback Chain ────────────────────────────────────
     # Comma-separated list: tries each model in order until one works
     model_fallback_chain: str = (
-        "gemini-2.5-pro,gemini-2.5-flash,gemini-2.0-flash,gemini-1.5-flash"
+        "gemini-1.5-pro,gemini-1.5-flash,gemini-1.0-pro"
     )
+
 
     # ── Google Calendar ─────────────────────────────────────────
     google_calendar_credentials_path: str = "./credentials.json"

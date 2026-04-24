@@ -157,6 +157,23 @@ class TraceService:
             timestamp=datetime.now(timezone.utc),
         ))
 
+    async def emit_canvas_event(
+        self,
+        conversation_id: str,
+        event_type: str,
+        data: dict[str, Any],
+        agent_name: str | None = None,
+    ) -> None:
+        """Shorthand: emit a canvas_event for the Action Theater UI."""
+        await self.emit(TraceEvent(
+            conversation_id=conversation_id,
+            event_type="canvas_event",
+            agent_name=agent_name,
+            data={"type": event_type, "payload": data},
+            timestamp=datetime.now(timezone.utc),
+        ))
+
+
 
 # ── Singleton ───────────────────────────────────────────────────
 trace_service = TraceService()

@@ -11,7 +11,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database.engine import get_db
-from app.database.models import ActionLog, Conversation, ConversationStatus, WorkflowRun, WorkflowRunStatus
+from app.database.models import ActionLog, Conversation, ConversationStatus, WorkflowRun, WorkflowRunStatus, PendingAction
+from app.services.demo_service import seed_demo_data
+from app.services.pending_actions_service import pending_actions_service
+
+
 from app.database.schemas import (
     ConversationResponse,
     ConversationSummary,
@@ -334,3 +338,43 @@ async def submit_feedback(
     )
 
     return {"status": "ok", "message": "Thank you for your feedback!"}
+
+
+# ── POST /api/v1/demo/seed ──────────────────────────────────────
+
+@router.post("/demo/seed")
+async def trigger_demo_seed(
+    db: AsyncSession = Depends(get_db),
+):
+    """Seed the database with a known good state for demo purposes."""
+    return await seed_demo_data(db)
+
+
+# ── POST /api/v1/actions/{id}/approve ───────────────────────────
+
+@router.post("/actions/{action_id}/approve")
+async def approve_action(
+    action_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Execute a pending staged action."""
+    result = await pending_actions_service.approve(db, action_id)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+# ── POST /api/v1/actions/{id}/reject ────────────────────────────
+
+@router.post("/actions/{action_id}/reject")
+async def reject_action(
+    action_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Reject and dismiss a pending staged action."""
+    success = await pending_actions_service.reject(db, action_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Action not found")
+    return {"status": "rejected"}
+
+

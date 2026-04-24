@@ -242,3 +242,36 @@ class ProgressLog(Base):
 
     def __repr__(self) -> str:
         return f"<ProgressLog id={self.id} hours={self.hours_completed}>"
+
+
+class PendingAction(Base):
+    """Tracks actions that require user approval before execution."""
+
+    __tablename__ = "pending_actions"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=_new_uuid
+    )
+    conversation_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("conversations.id"), nullable=False
+    )
+    action_type: Mapped[str] = mapped_column(
+        String(100), nullable=False, comment="e.g., CREATE_EVENT, UPDATE_TASK"
+    )
+    service: Mapped[str] = mapped_column(
+        String(50), nullable=False, comment="e.g., calendar, notion"
+    )
+    proposed_payload: Mapped[dict] = mapped_column(JSON, nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(20), default="pending", comment="pending | approved | rejected | executed"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow
+    )
+
+    # Relationships
+    conversation: Mapped[Conversation] = relationship()
+
+    def __repr__(self) -> str:
+        return f"<PendingAction {self.id[:8]} status={self.status}>"
+

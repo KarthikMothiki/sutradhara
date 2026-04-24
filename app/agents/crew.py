@@ -33,9 +33,17 @@ from app.agents.tools.rollback_tools import (
     undo_last_action,
 )
 from app.agents.tools.visualization import generate_workflow_diagram
+
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
+
+# ── Context for Draft-Approval ──────────────────────────────────
+import contextvars
+from sqlalchemy.ext.asyncio import AsyncSession
+ctx_conversation_id: contextvars.ContextVar[str] = contextvars.ContextVar("conversation_id")
+ctx_db: contextvars.ContextVar[AsyncSession] = contextvars.ContextVar("db")
+
 
 # ── Constants ───────────────────────────────────────────────────
 APP_NAME = "productivity-crew"
@@ -270,7 +278,7 @@ def _get_calendar_function_tools() -> list:
         except Exception as e:
             return {"error": str(e)}
 
-    def create_event(
+    async def create_event(
         title: str,
         start: str,
         end: str,
@@ -278,47 +286,29 @@ def _get_calendar_function_tools() -> list:
         attendees: list[str] = [],
         location: str = "",
     ) -> dict:
-        """Create a new calendar event.
-
-        Args:
-            title: Event title
-            start: Start datetime in ISO 8601 format
-            end: End datetime in ISO 8601 format
-            description: Event description
-            attendees: List of attendee email addresses
-            location: Event location
-
-        Returns:
-            Dict with created event details or error.
-        """
+        """Create a new calendar event. Required to be STAGED for human approval."""
+        from app.services.pending_actions_service import pending_actions_service
         try:
-            service = build_calendar_service()
-            if not service:
-                return {"error": "Google Calendar not authenticated."}
-
-            _tz = _get_system_timezone()
-
-            body: dict[str, Any] = {
-                "summary": title,
-                "start": {"dateTime": start, "timeZone": _tz},
-                "end": {"dateTime": end, "timeZone": _tz},
+            conv_id = ctx_conversation_id.get()
+            db = ctx_db.get()
+            
+            payload = {
+                "title": title, "start": start, "end": end, 
+                "description": description, "attendees": attendees, "location": location
             }
-            if description:
-                body["description"] = description
-            if location:
-                body["location"] = location
-            if attendees:
-                body["attendees"] = [{"email": e} for e in attendees]
-
-            created = service.events().insert(calendarId="primary", body=body).execute()
+            
+            action_id = await pending_actions_service.create_draft(
+                db, conv_id, "create_event", "calendar", payload, "calendar_specialist"
+            )
+            
             return {
-                "id": created["id"],
-                "title": created.get("summary"),
-                "link": created.get("htmlLink"),
-                "status": "created",
+                "status": "staged",
+                "action_id": action_id,
+                "message": f"I've staged the event '{title}' for your approval on the Live Canvas. It will not be added to your calendar until you approve it."
             }
         except Exception as e:
             return {"error": str(e)}
+
 
     def update_event(
         event_id: str,
@@ -530,70 +520,36 @@ def _get_notion_function_tools() -> list:
         except Exception as e:
             return {"error": str(e)}
 
-    def create_notion_page(
+    async def create_notion_page(
         title: str,
         database_id: str = "",
         status: str = "To Do",
         priority: str = "",
         content: str = "",
     ) -> dict:
-        """Create a new page/task in Notion.
-
-        Args:
-            title: Page title / task name
-            database_id: Target database ID (uses default if empty)
-            status: Task status (default: "To Do")
-            priority: Task priority (optional)
-            content: Page body content (optional)
-
-        Returns:
-            Dict with created page details.
-        """
+        """Create a new Notion page. Required to be STAGED for human approval."""
+        from app.services.pending_actions_service import pending_actions_service
         try:
-            import httpx
-            from app.config import get_settings
-
-            settings = get_settings()
-            if not settings.notion_token:
-                return {"error": "Notion not configured."}
-
-            db_id = database_id or settings.notion_database_id
-
-            properties: dict[str, Any] = {
-                "Name": {"title": [{"text": {"content": title}}]},
+            conv_id = ctx_conversation_id.get()
+            db = ctx_db.get()
+            
+            payload = {
+                "title": title, "content": content, "status": status, 
+                "priority": priority, "database_id": database_id
             }
-            if status:
-                properties["Status"] = {"status": {"name": status}}
-            if priority:
-                properties["Priority"] = {"select": {"name": priority}}
-
-            page_data: dict[str, Any] = {
-                "parent": {"database_id": db_id},
-                "properties": properties,
-            }
-
-            if content:
-                page_data["children"] = [
-                    {
-                        "object": "block",
-                        "type": "paragraph",
-                        "paragraph": {
-                            "rich_text": [{"type": "text", "text": {"content": content}}]
-                        },
-                    }
-                ]
-
-            resp = httpx.post(
-                "https://api.notion.com/v1/pages",
-                headers=_notion_headers(),
-                json=page_data,
-                timeout=15,
+            
+            action_id = await pending_actions_service.create_draft(
+                db, conv_id, "create_notion_page", "notion", payload, "notion_specialist"
             )
-            resp.raise_for_status()
-            result = resp.json()
-            return {"id": result["id"], "title": title, "url": result.get("url", ""), "status": "created"}
+            
+            return {
+                "status": "staged",
+                "action_id": action_id,
+                "message": f"I've staged the Notion page '{title}' for your approval. Please review it on the Live Canvas."
+            }
         except Exception as e:
             return {"error": str(e)}
+
 
     def update_notion_page(
         page_id: str,
@@ -777,17 +733,44 @@ async def run_agent_query(
         factory = get_session_factory()
         
         async with factory() as db_session:
-            async for event in runner.run_async(
-                user_id=user_id,
-                session_id=session.id,
-                new_message=user_content,
-            ):
-                # Collect the final response text
-                if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if hasattr(part, "text") and part.text:
-                            response_text += part.text
+            # Set context for Draft-Approval workflow
+            token_conv = ctx_conversation_id.set(conversation_id or adk_session_id)
+            token_db = ctx_db.set(db_session)
+            
+            try:
+                async for event in runner.run_async(
+                    user_id=user_id,
+                    session_id=session.id,
+                    new_message=user_content,
+                ):
+                    # Collect the final response text
+                    if event.content and event.content.parts:
+                        for part in event.content.parts:
+                            if hasattr(part, "text") and part.text:
+                                response_text += part.text
+
                         
+                        # Deduce which specialist is acting based on the tool
+                        specialist_map = {
+                            "list_events": "calendar_specialist",
+                            "create_event": "calendar_specialist",
+                            "update_event": "calendar_specialist",
+                            "delete_event": "calendar_specialist",
+                            "find_free_slots": "calendar_specialist",
+                            "query_notion_database": "notion_specialist",
+                            "create_notion_page": "notion_specialist",
+                            "update_notion_page": "notion_specialist",
+                            "search_notion": "notion_specialist",
+                            "generate_workflow_diagram": "planner",
+                            "log_focus_progress": "focus_agent",
+                            "schedule_focus_time": "focus_agent",
+                            "get_priority_targets": "focus_agent",
+                            "undo_last_action": "manager",
+                            "undo_conversation_actions": "manager",
+                            "log_reversible_action": "manager",
+                            "transfer_to_agent": "manager"
+                        }
+
                         # Intercept the tool calls to save trace to DB and emit to Live Trace
                         if getattr(part, "function_call", None):
                             tool_name = part.function_call.name
@@ -795,28 +778,9 @@ async def run_agent_query(
                                 args = dict(part.function_call.args)
                             except Exception:
                                 args = {}
-                                
-                            # Deduce which specialist is acting based on the tool
-                            specialist_map = {
-                                "list_events": "calendar_specialist",
-                                "create_event": "calendar_specialist",
-                                "update_event": "calendar_specialist",
-                                "delete_event": "calendar_specialist",
-                                "find_free_slots": "calendar_specialist",
-                                "query_notion_database": "notion_specialist",
-                                "create_notion_page": "notion_specialist",
-                                "update_notion_page": "notion_specialist",
-                                "search_notion": "notion_specialist",
-                                "generate_workflow_diagram": "planner",
-                                "log_focus_progress": "focus_agent",
-                                "schedule_focus_time": "focus_agent",
-                                "get_priority_targets": "focus_agent",
-                                "undo_last_action": "manager",
-                                "undo_conversation_actions": "manager",
-                                "log_reversible_action": "manager",
-                                "transfer_to_agent": "manager"
-                            }
+                            
                             author = specialist_map.get(tool_name, "manager")
+
                                 
                             from app.services.trace_service import trace_service
                             asyncio.create_task(trace_service.emit_tool_call(
@@ -856,7 +820,53 @@ async def run_agent_query(
                                 except Exception as call_err:
                                     logger.error(f"Failed to intercept diagram parameters: {call_err}")
 
+                        # Intercept the tool results to emit to Live Trace and Canvas
+                        if getattr(part, "function_response", None):
+                            tool_name = part.function_response.name
+                            try:
+                                res_data = dict(part.function_response.response)
+                            except Exception:
+                                res_data = {"raw": str(part.function_response.response)}
+                            
+                            author = specialist_map.get(tool_name, "manager")
+                            from app.services.trace_service import trace_service
+
+                            # Emit result to Loom (Trace)
+                            asyncio.create_task(trace_service.emit_tool_result(
+                                adk_session_id, author, tool_name, res_data
+                            ))
+
+                            # Emit to Canvas (Action Theater)
+                            if tool_name == "list_events":
+                                asyncio.create_task(trace_service.emit_canvas_event(
+                                    adk_session_id, "CALENDAR_CONFLICT", res_data, author
+                                ))
+                            elif tool_name == "query_notion_database":
+                                pages = res_data.get("pages", [])
+                                tasks = [{"title": p.get("title", "Untitled"), "priority": p.get("priority", "Med")} for p in pages]
+                                asyncio.create_task(trace_service.emit_canvas_event(
+                                    adk_session_id, "NOTION_TASKS", {"tasks": tasks}, author
+                                ))
+
+                            elif tool_name == "create_notion_page":
+                                asyncio.create_task(trace_service.emit_canvas_event(
+                                    adk_session_id, "DRAFT_ACTION", 
+                                    {"title": f"Create {res_data.get('title')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
+                                    author
+                                ))
+                            elif tool_name == "create_event":
+                                asyncio.create_task(trace_service.emit_canvas_event(
+                                    adk_session_id, "DRAFT_ACTION", 
+                                    {"title": f"Schedule {res_data.get('title')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
+                                    author
+                                ))
+
+            except Exception as inner_e:
+                logger.error(f"Error in runner.run_async loop: {inner_e}")
+                raise inner_e
+
     except Exception as e:
+
         logger.error(f"Agent execution error: {e}", exc_info=True)
         return {
             "response": f"I encountered an error: {str(e)}",
