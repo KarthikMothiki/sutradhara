@@ -4,7 +4,10 @@
  */
 
 // ── Configuration ──────────────────────────────────────────────
-const BACKEND_URL = 'http://127.0.0.1:8081';
+// Dynamically detect the backend URL (handles 8080, 8081, or Cloud Run)
+const BACKEND_URL = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+    ? window.location.origin 
+    : 'https://sutradhara-agent-xyz.a.run.app'; // Placeholder for production
 
 const API_BASE = BACKEND_URL + '/api/v1';
 const WS_BASE = BACKEND_URL.replace('http://', 'ws://').replace('https://', 'wss://');

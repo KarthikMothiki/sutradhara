@@ -29,3 +29,29 @@ INFO:     Waiting for application startup.
 21:18:10 │ INFO     │ app.main │ ✅ System ready — Sūtradhāra at your service! 🎭
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8081 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55008 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60422 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41744 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+21:20:26 │ INFO     │ app.services.demo_service │ 🎬 Seeding demo data with rich named dataset...
+21:20:26 │ INFO     │ app.services.demo_service │ ✅ Demo data seeded — 5 events, 6 tasks, 3 dashboard alerts.
+INFO:     127.0.0.1:41744 - "GET /api/v1/demo/seed HTTP/1.1" 200 OK
+21:20:35 │ INFO     │ app.services.demo_service │ 🎬 Seeding demo data with rich named dataset...
+21:20:35 │ INFO     │ app.services.demo_service │ ✅ Demo data seeded — 5 events, 6 tasks, 3 dashboard alerts.
+INFO:     127.0.0.1:34496 - "GET /api/v1/demo/seed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48570 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56342 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+21:21:18 │ INFO     │ app.services.demo_service │ 🎬 Seeding demo data with rich named dataset...
+21:21:18 │ INFO     │ app.services.demo_service │ ✅ Demo data seeded — 5 events, 6 tasks, 3 dashboard alerts.
+INFO:     127.0.0.1:58702 - "GET /api/v1/demo/seed HTTP/1.1" 200 OK
+21:21:20 │ INFO     │ app.services.demo_service │ 🎬 Seeding demo data with rich named dataset...
+21:21:20 │ INFO     │ app.services.demo_service │ ✅ Demo data seeded — 5 events, 6 tasks, 3 dashboard alerts.
+INFO:     127.0.0.1:58702 - "GET /api/v1/demo/seed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43442 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+21:21:42 │ INFO     │ app.services.demo_service │ 🎬 Seeding demo data with rich named dataset...
+21:21:42 │ INFO     │ app.services.demo_service │ ✅ Demo data seeded — 5 events, 6 tasks, 3 dashboard alerts.
+INFO:     127.0.0.1:43442 - "GET /api/v1/demo/seed HTTP/1.1" 200 OK
+21:21:43 │ INFO     │ app.services.demo_service │ 🎬 Seeding demo data with rich named dataset...
+21:21:43 │ INFO     │ app.services.demo_service │ ✅ Demo data seeded — 5 events, 6 tasks, 3 dashboard alerts.
+INFO:     127.0.0.1:43442 - "GET /api/v1/demo/seed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51744 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45418 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK

@@ -158,6 +158,10 @@ async def seed_demo_data(db: AsyncSession) -> dict:
     """Seed the database with rich demo data and proactive alerts."""
     logger.info("🎬 Seeding demo data with rich named dataset...")
     
+    # Clear existing alerts to prevent duplicates in the UI
+    from sqlalchemy import delete
+    await db.execute(delete(DashboardAlert))
+    
     # Add some proactive alerts to the sidebar
     alerts = [
         DashboardAlert(
