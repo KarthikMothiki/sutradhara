@@ -28,42 +28,42 @@ def _rel(days: int, hour: int, minute: int = 0) -> str:
 DEMO_CALENDAR = [
     {
         "id": "evt_001",
-        "title": "Series A Partner Call — Sequoia",
-        "start": _rel(1, 9, 0),
-        "end":   _rel(1, 9, 45),
-        "attendees": ["Sarah Chen (Sequoia)", "Marcus Okafor (CFO)"],
+        "summary": "Series A Partner Call — Sequoia",
+        "start": {"dateTime": _rel(1, 9, 0)},
+        "end":   {"dateTime": _rel(1, 9, 45)},
+        "attendees": [{"email": "sarah@sequoia.com", "displayName": "Sarah Chen"}, {"email": "marcus@company.com", "displayName": "Marcus Okafor"}],
         "description": "Q2 metrics review. Deck must be updated before this call.",
     },
     {
         "id": "evt_002",
-        "title": "Engineering Standup",
-        "start": _rel(1, 9, 15),   # ⚠ intentional conflict with evt_001
-        "end":   _rel(1, 9, 45),
-        "attendees": ["Priya Nair", "Dev Team"],
+        "summary": "Engineering Standup",
+        "start": {"dateTime": _rel(1, 9, 15)},   # ⚠ intentional conflict with evt_001
+        "end":   {"dateTime": _rel(1, 9, 45)},
+        "attendees": [{"email": "priya@company.com", "displayName": "Priya Nair"}],
         "description": "Sprint 14 daily sync.",
     },
     {
         "id": "evt_003",
-        "title": "Sprint 14 Retrospective",
-        "start": _rel(2, 14, 0),
-        "end":   _rel(2, 16, 0),
-        "attendees": ["Full Team"],
+        "summary": "Sprint 14 Retrospective",
+        "start": {"dateTime": _rel(2, 14, 0)},
+        "end":   {"dateTime": _rel(2, 16, 0)},
+        "attendees": [],
         "description": "Cover deployment pipeline delays and auth refactor timeline.",
     },
     {
         "id": "evt_004",
-        "title": "1:1 — Priya Nair",
-        "start": _rel(2, 15, 30),  # ⚠ intentional conflict with evt_003
-        "end":   _rel(2, 16, 0),
-        "attendees": ["Priya Nair"],
+        "summary": "1:1 — Priya Nair",
+        "start": {"dateTime": _rel(2, 15, 30)},  # ⚠ intentional conflict with evt_003
+        "end":   {"dateTime": _rel(2, 16, 0)},
+        "attendees": [{"email": "priya@company.com", "displayName": "Priya Nair"}],
         "description": "",
     },
     {
         "id": "evt_005",
-        "title": "Product Strategy Review",
-        "start": _rel(3, 10, 0),
-        "end":   _rel(3, 12, 0),
-        "attendees": ["Sarah Chen", "Karthik Mothiki"],
+        "summary": "Product Strategy Review",
+        "start": {"dateTime": _rel(3, 10, 0)},
+        "end":   {"dateTime": _rel(3, 12, 0)},
+        "attendees": [{"email": "sarah@sequoia.com", "displayName": "Sarah Chen"}],
         "description": "Q3 roadmap alignment with Sarah.",
     },
 ]
@@ -128,13 +128,13 @@ DEMO_NOTION = [
 # Conflict pairs (pre-computed for the canvas cards)
 DEMO_CONFLICTS = [
     {
-        "eventA": {"id": "evt_001", "title": "Series A Partner Call — Sequoia", "start": _rel(1, 9, 0)},
-        "eventB": {"id": "evt_002", "title": "Engineering Standup", "start": _rel(1, 9, 15)},
+        "eventA": {"id": "evt_001", "summary": "Series A Partner Call — Sequoia", "start": {"dateTime": _rel(1, 9, 0)}},
+        "eventB": {"id": "evt_002", "summary": "Engineering Standup", "start": {"dateTime": _rel(1, 9, 15)}},
         "overlap": 30,
     },
     {
-        "eventA": {"id": "evt_003", "title": "Sprint 14 Retrospective", "start": _rel(2, 14, 0)},
-        "eventB": {"id": "evt_004", "title": "1:1 — Priya Nair", "start": _rel(2, 15, 30)},
+        "eventA": {"id": "evt_003", "summary": "Sprint 14 Retrospective", "start": {"dateTime": _rel(2, 14, 0)}},
+        "eventB": {"id": "evt_004", "summary": "1:1 — Priya Nair", "start": {"dateTime": _rel(2, 15, 30)}},
         "overlap": 30,
     },
 ]
@@ -165,26 +165,59 @@ async def seed_demo_data(db: AsyncSession) -> dict:
     # Add some proactive alerts to the sidebar
     alerts = [
         DashboardAlert(
-            title="Calendar Conflict",
-            message="Your Sequoia call overlaps with the Engineering Standup tomorrow at 9:00 AM.",
-            severity="high",
+            title="Focus Opportunity",
+            message="I found a 2-hour gap on Wednesday afternoon. Suggesting a Deep Work block.",
+            severity="info"
         ),
         DashboardAlert(
             title="Notion Deadline",
             message="PR #47 Review is due today. Priya is waiting for your feedback.",
-            severity="medium",
+            severity="warning"
         ),
         DashboardAlert(
-            title="Focus Opportunity",
-            message="I found a 2-hour gap on Wednesday afternoon. Suggesting a Deep Work block.",
-            severity="low",
-        )
+            title="Calendar Conflict",
+            message="Your Sequoia call overlaps with the Engineering Standup tomorrow at 9:00 AM.",
+            severity="error"
+        ),
     ]
-    for alert in alerts:
-        db.add(alert)
+    db.add_all(alerts)
     
+    # ── G2/G4: Scripted Demo Action ────────────────────────
+    # Ensure a conversation exists for the demo action to link to
+    from app.database.models import Conversation, PendingAction
+    from sqlalchemy import select
+    
+    # Check if demo_session exists
+    conv_q = await db.execute(select(Conversation).where(Conversation.id == "demo_session"))
+    if not conv_q.scalar_one_or_none():
+        db.add(Conversation(
+            id="demo_session",
+            user_query="Give me my daily briefing",
+            status="completed"
+        ))
+        logger.info("🎬 [SEED] Creating demo_session conversation.")
+
+    # We insert a hardcoded pending action so "Approve" works instantly in the demo
+    demo_action = PendingAction(
+        id="demo_seq_001",
+        conversation_id="demo_session",
+        action_type="update_calendar",
+        service="google_calendar",
+        proposed_payload={"eventId": "evt_002", "start": "10:15"},
+        status="pending"
+    )
+    # Check if exists first to avoid primary key error
+    existing_q = await db.execute(select(PendingAction).where(PendingAction.id == "demo_seq_001"))
+    existing = existing_q.scalar_one_or_none()
+    if not existing:
+        db.add(demo_action)
+        logger.info("🎬 [SEED] Adding demo_seq_001 to database.")
+    else:
+        existing.status = "pending" # Reset if it was already used
+        logger.info("🎬 [SEED] Resetting existing demo_seq_001 to pending.")
+
     await db.commit()
-    logger.info("✅ Demo data seeded — 5 events, 6 tasks, 3 dashboard alerts.")
+    logger.info("✅ Demo data seeded — 5 events, 6 tasks, 3 dashboard alerts, 1 demo action.")
     
     return {
         "status": "seeded",

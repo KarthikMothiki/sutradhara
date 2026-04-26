@@ -62,9 +62,18 @@ class PendingActionsService:
 
     async def approve(self, db: AsyncSession, action_id: str) -> dict:
         """Executes the pending action."""
+        logger.info(f"🔍 [APPROVE] Looking for action: {action_id}")
         action = await self.get_action(db, action_id)
-        if not action or action.status != "pending":
-            return {"error": "Action not found or already processed"}
+        
+        if not action:
+            logger.error(f"❌ [APPROVE] Action {action_id} NOT FOUND in database.")
+            return {"error": "Action not found"}
+            
+        if action.status != "pending":
+            logger.warning(f"⚠️ [APPROVE] Action {action_id} found but status is '{action.status}' (expected 'pending').")
+            return {"error": f"Action already processed (status: {action.status})"}
+
+        logger.info(f"✅ [APPROVE] Action {action_id} found and is pending. Proceeding to execution.")
 
         # Execute based on service
         result = await self._execute_action(action)
@@ -78,8 +87,8 @@ class PendingActionsService:
                 conversation_id=action.conversation_id,
                 event_type="IMPACT_UPDATE",
                 data={
-                    "conflicts_resolved": 1 if "event" in action.action_type.lower() else 0,
-                    "tasks_updated": 1 if "page" in action.action_type.lower() else 0,
+                    "conflicts_resolved": 1 if any(x in action.action_type.lower() for x in ["event", "calendar"]) else 0,
+                    "tasks_updated": 1 if any(x in action.action_type.lower() for x in ["page", "notion"]) else 0,
                     "minutes_saved": 15
                 }
             )

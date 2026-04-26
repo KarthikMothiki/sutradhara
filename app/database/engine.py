@@ -73,6 +73,11 @@ async def init_db() -> None:
         UserPriorities,
         FocusBlocks,
         ProgressLog,
+        PendingAction,
+        DashboardAlert,
+        UserPreference,
+        MemoryEntry,
+        KnowledgeGraphEntry,
     )
 
     engine = _get_engine()

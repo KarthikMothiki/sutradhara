@@ -398,6 +398,24 @@ function addChatMessage(role, text) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+function clearCanvas(force = true) {
+    if (force) {
+        canvasContent.innerHTML = '<div id="briefing-anchor"></div>';
+    } else {
+        const briefing = document.getElementById('daily-briefing-card');
+        canvasContent.innerHTML = '';
+        canvasContent.innerHTML = '<div id="briefing-anchor"></div>';
+        if (briefing) {
+            const anchor = document.getElementById('briefing-anchor');
+            anchor.appendChild(briefing);
+        }
+    }
+}
+
+function clearLoom() {
+    traceTimeline.innerHTML = '';
+}
+
 function updateImpact(key, val) {
     const startValue = impactMetrics[key];
     impactMetrics[key] += val;
@@ -458,11 +476,15 @@ async function approveStagedAction(btn, actionId) {
         if (data.error) throw new Error(data.error);
 
         card.style.borderColor = 'var(--agent-planner)';
-        card.querySelector('.badge').textContent = 'Executed';
-        card.querySelector('.badge').style.color = 'var(--agent-planner)';
+        const badge = card.querySelector('.badge');
+        if (badge) {
+            badge.textContent = 'Executed';
+            badge.style.color = 'var(--agent-planner)';
+        }
         
         btn.remove();
-        card.querySelector('.btn-outline').remove();
+        const secondaryBtn = card.querySelector('.btn-secondary') || card.querySelector('.btn-outline');
+        if (secondaryBtn) secondaryBtn.remove();
         
         showToast('✅', 'Action executed & logged.');
         updateImpact('tasks', 1);
@@ -612,7 +634,10 @@ function renderDraftAction(data, description, actionId) {
     const safeActionId = (actionId || '').replace(/'/g, "\\'");
     const desc = (description || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     return `
-        <span class="card-status">Staged Action</span>
+        <div class="card-header">
+            <span class="card-status">Staged Action</span>
+            <span class="badge">Draft</span>
+        </div>
         <div class="card-title">${data.title || 'Proposed Update'}</div>
         <div class="card-body">${desc}</div>
         <div class="card-actions">
@@ -651,26 +676,6 @@ function startPendingActionPolling(convId) {
     pendingActionInterval = setInterval(poll, 2000);
 }
 
-async function approveStagedAction(btn, actionId) {
-    const card = btn.closest('.canvas-card');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Executing...';
-    
-    try {
-        const res = await fetch(`${API_BASE}/actions/${actionId}/approve`, { method: 'POST' });
-        const data = await res.json();
-        
-        if (data.error) throw new Error(data.error);
-        
-        card.style.borderLeftColor = 'var(--agent-planner)';
-        card.querySelector('.card-actions').innerHTML = '<span class="badge success">✅ Action Executed</span>';
-        showToast('✨', 'Action approved and executed.');
-    } catch (e) {
-        showToast('❌', 'Approval failed: ' + e.message);
-        btn.disabled = false;
-        btn.textContent = 'Approve & Execute';
-    }
-}
 
 async function rejectStagedAction(btn, actionId) {
     const card = btn.closest('.canvas-card');
