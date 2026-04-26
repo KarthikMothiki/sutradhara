@@ -105,8 +105,15 @@ class PendingActionsService:
 
     async def _execute_action(self, action: PendingAction) -> dict:
         """Low-level execution of the tool logic."""
-        # Note: In a real implementation, we'd reuse the tool logic from crew.py
-        # For this sprint, we'll call the underlying services directly
+        from app.config import get_settings
+        settings = get_settings()
+
+        # ── DEMO MODE BYPASS ────────────────────────────────────
+        if settings.demo_mode:
+            logger.info(f"🎭 DEMO MODE: Simulating execution of {action.action_type}")
+            return {"success": True, "id": f"demo_{action.id[:8]}", "mode": "demo"}
+        # ── END DEMO MODE BYPASS ───────────────────────────────
+
         try:
             if action.service == "calendar":
                 from app.auth.google_auth import build_calendar_service

@@ -1,0 +1,273 @@
+INFO:     Will watch for changes in these directories: ['/home/ogmen/gen_ai_apac_challenge_hackathon']
+INFO:     Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+INFO:     Started reloader process [28285] using WatchFiles
+16:06:42 │ INFO     │ app.main │ 📂 Frontend mounted from /home/ogmen/gen_ai_apac_challenge_hackathon/frontend
+INFO:     Started server process [28287]
+INFO:     Waiting for application startup.
+16:06:42 │ INFO     │ app.main │ 🚀 Starting Multi-Agent Task Management System…
+16:06:42 │ INFO     │ app.main │    Model chain: gemini-2.5-pro,gemini-2.5-flash
+16:06:42 │ INFO     │ app.main │    Database: sqlite+aiosqlite:///./data/app.db
+16:06:42 │ INFO     │ app.main │    Scheduler: enabled
+16:06:42 │ INFO     │ app.main │ ✅ Database initialized
+16:06:42 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:06:42 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:06:42 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:06:42 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:06:42 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:06:42 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:06:42 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:06:42 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:06:42 │ INFO     │ apscheduler.scheduler │ Added job "Daily Briefing" to job store "default"
+16:06:42 │ INFO     │ apscheduler.scheduler │ Added job "Meeting Prep" to job store "default"
+16:06:42 │ INFO     │ apscheduler.scheduler │ Added job "Weekly Review" to job store "default"
+16:06:42 │ INFO     │ apscheduler.scheduler │ Added job "Conflict Detection" to job store "default"
+16:06:42 │ INFO     │ apscheduler.scheduler │ Added job "Smart Rescheduling Check" to job store "default"
+16:06:42 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Plan" to job store "default"
+16:06:42 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Review" to job store "default"
+16:06:42 │ INFO     │ apscheduler.scheduler │ Added job "Focus Deadline Alert" to job store "default"
+16:06:42 │ INFO     │ apscheduler.scheduler │ Scheduler started
+16:06:42 │ INFO     │ app.services.scheduler_service │ 📅 Scheduler started with 5 jobs: Daily Briefing (08:00), Meeting Prep (every 15 min), Weekly Review (friday 18:00), Conflict Detection (every 30 min), Smart Rescheduling (every hour)
+16:06:42 │ INFO     │ app.main │ ✅ System ready — Sūtradhāra at your service! 🎭
+INFO:     Application startup complete.
+16:21:42 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 16:36:42 IST)" (scheduled at 2026-04-26 16:21:42.576206+05:30)
+16:21:42 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+16:21:44 │ INFO     │ app.agents.crew │ Building agent crew with model: gemini-2.5-pro
+16:21:44 │ INFO     │ app.agents.crew │ ✅ Created calendar_specialist (×2)
+16:21:44 │ INFO     │ app.agents.crew │ ✅ Created notion_specialist (×2)
+16:21:44 │ INFO     │ app.agents.crew │ ✅ Created planner
+16:21:44 │ INFO     │ app.agents.crew │ ✅ Created focus_agent
+16:21:44 │ INFO     │ app.agents.crew │ ✅ Root Agent 'manager' created with sub-agents: ['calendar_specialist', 'notion_specialist', 'planner', 'focus_agent']
+16:21:44 │ INFO     │ app.agents.crew │ ✅ ADK Runner initialized for 'productivity-crew'
+16:21:44 │ INFO     │ app.agents.crew │ Created new ADK session 0930dfd0…
+16:21:44 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:21:47 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+16:21:47 │ WARNING  │ google_genai.types │ Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+16:21:47 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:21:58 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+16:21:58 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:22:02 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/api_core/_python_version_support.py:275: FutureWarning: You are using a Python version (3.10.12) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+16:22:03 │ INFO     │ googleapiclient.discovery_cache │ file_cache is only supported with oauth2client<4.0.0
+16:22:03 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:22:06 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+16:22:06 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+16:22:06 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 16:36:42 IST)" executed successfully
+WARNING:  WatchFiles detected changes in 'app/config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+16:29:39 │ INFO     │ app.main │ Shutting down…
+16:29:39 │ INFO     │ app.services.scheduler_service │ Scheduler shut down.
+16:29:39 │ INFO     │ apscheduler.scheduler │ Scheduler has been shut down
+16:29:39 │ INFO     │ app.main │ 👋 Goodbye!
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28287]
+16:29:40 │ INFO     │ app.main │ 📂 Frontend mounted from /home/ogmen/gen_ai_apac_challenge_hackathon/frontend
+INFO:     Started server process [29025]
+INFO:     Waiting for application startup.
+16:29:40 │ INFO     │ app.main │ 🚀 Starting Multi-Agent Task Management System…
+16:29:40 │ INFO     │ app.main │    Model chain: gemini-2.5-pro,gemini-2.5-flash
+16:29:40 │ INFO     │ app.main │    Database: sqlite+aiosqlite:///./data/app.db
+16:29:40 │ INFO     │ app.main │    Scheduler: enabled
+16:29:40 │ INFO     │ app.main │ ✅ Database initialized
+16:29:40 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:29:40 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:29:40 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:29:40 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:29:40 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:29:40 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:29:40 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:29:40 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:29:40 │ INFO     │ apscheduler.scheduler │ Added job "Daily Briefing" to job store "default"
+16:29:40 │ INFO     │ apscheduler.scheduler │ Added job "Meeting Prep" to job store "default"
+16:29:40 │ INFO     │ apscheduler.scheduler │ Added job "Weekly Review" to job store "default"
+16:29:40 │ INFO     │ apscheduler.scheduler │ Added job "Conflict Detection" to job store "default"
+16:29:40 │ INFO     │ apscheduler.scheduler │ Added job "Smart Rescheduling Check" to job store "default"
+16:29:40 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Plan" to job store "default"
+16:29:40 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Review" to job store "default"
+16:29:40 │ INFO     │ apscheduler.scheduler │ Added job "Focus Deadline Alert" to job store "default"
+16:29:40 │ INFO     │ apscheduler.scheduler │ Scheduler started
+16:29:40 │ INFO     │ app.services.scheduler_service │ 📅 Scheduler started with 5 jobs: Daily Briefing (08:00), Meeting Prep (every 15 min), Weekly Review (friday 18:00), Conflict Detection (every 30 min), Smart Rescheduling (every hour)
+16:29:40 │ INFO     │ app.main │ ✅ System ready — Sūtradhāra at your service! 🎭
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+16:30:17 │ INFO     │ app.main │ Shutting down…
+16:30:17 │ INFO     │ app.services.scheduler_service │ Scheduler shut down.
+16:30:17 │ INFO     │ apscheduler.scheduler │ Scheduler has been shut down
+16:30:17 │ INFO     │ app.main │ 👋 Goodbye!
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29025]
+16:30:18 │ INFO     │ app.main │ 📂 Frontend mounted from /home/ogmen/gen_ai_apac_challenge_hackathon/frontend
+INFO:     Started server process [29094]
+INFO:     Waiting for application startup.
+16:30:18 │ INFO     │ app.main │ 🚀 Starting Multi-Agent Task Management System…
+16:30:18 │ INFO     │ app.main │    Model chain: gemini-2.5-pro,gemini-2.5-flash
+16:30:18 │ INFO     │ app.main │    Database: sqlite+aiosqlite:///./data/app.db
+16:30:18 │ INFO     │ app.main │    Scheduler: enabled
+16:30:18 │ INFO     │ app.main │ ✅ Database initialized
+16:30:18 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:30:18 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:30:18 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:30:18 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:30:18 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:30:18 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:30:18 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:30:18 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+16:30:18 │ INFO     │ apscheduler.scheduler │ Added job "Daily Briefing" to job store "default"
+16:30:18 │ INFO     │ apscheduler.scheduler │ Added job "Meeting Prep" to job store "default"
+16:30:18 │ INFO     │ apscheduler.scheduler │ Added job "Weekly Review" to job store "default"
+16:30:18 │ INFO     │ apscheduler.scheduler │ Added job "Conflict Detection" to job store "default"
+16:30:18 │ INFO     │ apscheduler.scheduler │ Added job "Smart Rescheduling Check" to job store "default"
+16:30:18 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Plan" to job store "default"
+16:30:18 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Review" to job store "default"
+16:30:18 │ INFO     │ apscheduler.scheduler │ Added job "Focus Deadline Alert" to job store "default"
+16:30:18 │ INFO     │ apscheduler.scheduler │ Scheduler started
+16:30:18 │ INFO     │ app.services.scheduler_service │ 📅 Scheduler started with 5 jobs: Daily Briefing (08:00), Meeting Prep (every 15 min), Weekly Review (friday 18:00), Conflict Detection (every 30 min), Smart Rescheduling (every hour)
+16:30:18 │ INFO     │ app.main │ ✅ System ready — Sūtradhāra at your service! 🎭
+INFO:     Application startup complete.
+16:45:18 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 17:00:18 IST)" (scheduled at 2026-04-26 16:45:18.825845+05:30)
+16:45:18 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+16:45:21 │ INFO     │ app.agents.crew │ Building agent crew with model: gemini-2.5-pro
+16:45:21 │ INFO     │ app.agents.crew │ ✅ Created calendar_specialist (×2)
+16:45:21 │ INFO     │ app.agents.crew │ ✅ Created notion_specialist (×2)
+16:45:21 │ INFO     │ app.agents.crew │ ✅ Created planner
+16:45:21 │ INFO     │ app.agents.crew │ ✅ Created focus_agent
+16:45:21 │ INFO     │ app.agents.crew │ ✅ Root Agent 'manager' created with sub-agents: ['calendar_specialist', 'notion_specialist', 'planner', 'focus_agent']
+16:45:21 │ INFO     │ app.agents.crew │ ✅ ADK Runner initialized for 'productivity-crew'
+16:45:21 │ INFO     │ app.agents.crew │ Created new ADK session cde13af9…
+16:45:21 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:45:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+16:45:25 │ WARNING  │ google_genai.types │ Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+16:45:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:45:30 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+16:45:30 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:45:38 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+16:45:38 │ INFO     │ app.auth.google_auth │ Google Calendar token refreshed successfully.
+16:45:38 │ INFO     │ app.auth.google_auth │ Token saved to token.json
+/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/api_core/_python_version_support.py:275: FutureWarning: You are using a Python version (3.10.12) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+16:45:39 │ INFO     │ googleapiclient.discovery_cache │ file_cache is only supported with oauth2client<4.0.0
+16:45:39 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:45:45 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+16:45:45 │ INFO     │ googleapiclient.discovery_cache │ file_cache is only supported with oauth2client<4.0.0
+16:45:46 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+16:45:50 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+16:45:50 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+16:45:50 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 17:00:18 IST)" executed successfully
+17:00:18 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 17:15:18 IST)" (scheduled at 2026-04-26 17:00:18.825845+05:30)
+17:00:18 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+17:00:18 │ INFO     │ app.agents.crew │ Created new ADK session 3a475fff…
+17:00:18 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:00:18 │ INFO     │ apscheduler.executors.default │ Running job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-26 17:30:18 IST)" (scheduled at 2026-04-26 17:00:18.826965+05:30)
+17:00:18 │ INFO     │ app.services.scheduler_service │ ⚠️ Running Conflict Detection job…
+17:00:18 │ INFO     │ app.agents.crew │ Created new ADK session e1d9d876…
+17:00:19 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:00:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:00:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:00:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:00:26 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:00:28 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:00:29 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:00:29 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:00:30 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:00:35 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:00:35 │ INFO     │ googleapiclient.discovery_cache │ file_cache is only supported with oauth2client<4.0.0
+17:00:36 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:00:36 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:00:36 │ INFO     │ googleapiclient.discovery_cache │ file_cache is only supported with oauth2client<4.0.0
+17:00:37 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+17:00:37 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 885, in run_agent_query
+    raise inner_e
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 853, in run_agent_query
+    conflict_pairs = _detect_conflicts(events)
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 626, in _detect_conflicts
+    sorted_events = sorted(events, key=lambda e: e.get("start", {}).get("dateTime", e.get("start", {}).get("date", "")))
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 626, in <lambda>
+    sorted_events = sorted(events, key=lambda e: e.get("start", {}).get("dateTime", e.get("start", {}).get("date", "")))
+AttributeError: 'str' object has no attribute 'get'
+17:00:37 │ INFO     │ app.services.scheduler_service │ Conflict detection completed: failed
+17:00:37 │ INFO     │ apscheduler.executors.default │ Job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-26 17:30:18 IST)" executed successfully
+17:00:46 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:00:46 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+17:00:46 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 17:15:18 IST)" executed successfully
+17:15:18 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 17:30:18 IST)" (scheduled at 2026-04-26 17:15:18.825845+05:30)
+17:15:18 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+17:15:18 │ INFO     │ app.agents.crew │ Created new ADK session cbab7ca5…
+17:15:18 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:15:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:15:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:15:29 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:15:29 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:15:34 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:15:34 │ INFO     │ googleapiclient.discovery_cache │ file_cache is only supported with oauth2client<4.0.0
+17:15:35 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:15:37 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:15:37 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+17:15:37 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 17:30:18 IST)" executed successfully
+WARNING:  WatchFiles detected changes in 'app/agents/planner.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+17:21:22 │ INFO     │ app.main │ Shutting down…
+17:21:22 │ INFO     │ app.services.scheduler_service │ Scheduler shut down.
+17:21:22 │ INFO     │ apscheduler.scheduler │ Scheduler has been shut down
+17:21:22 │ INFO     │ app.main │ 👋 Goodbye!
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29094]
+17:21:22 │ INFO     │ app.main │ 📂 Frontend mounted from /home/ogmen/gen_ai_apac_challenge_hackathon/frontend
+INFO:     Started server process [32412]
+INFO:     Waiting for application startup.
+17:21:22 │ INFO     │ app.main │ 🚀 Starting Multi-Agent Task Management System…
+17:21:22 │ INFO     │ app.main │    Model chain: gemini-2.5-pro,gemini-2.5-flash
+17:21:22 │ INFO     │ app.main │    Database: sqlite+aiosqlite:///./data/app.db
+17:21:22 │ INFO     │ app.main │    Scheduler: enabled
+17:21:22 │ INFO     │ app.main │ ✅ Database initialized
+17:21:22 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+17:21:22 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+17:21:22 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+17:21:22 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+17:21:22 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+17:21:22 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+17:21:22 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+17:21:22 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+17:21:22 │ INFO     │ apscheduler.scheduler │ Added job "Daily Briefing" to job store "default"
+17:21:22 │ INFO     │ apscheduler.scheduler │ Added job "Meeting Prep" to job store "default"
+17:21:22 │ INFO     │ apscheduler.scheduler │ Added job "Weekly Review" to job store "default"
+17:21:22 │ INFO     │ apscheduler.scheduler │ Added job "Conflict Detection" to job store "default"
+17:21:22 │ INFO     │ apscheduler.scheduler │ Added job "Smart Rescheduling Check" to job store "default"
+17:21:22 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Plan" to job store "default"
+17:21:22 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Review" to job store "default"
+17:21:22 │ INFO     │ apscheduler.scheduler │ Added job "Focus Deadline Alert" to job store "default"
+17:21:22 │ INFO     │ apscheduler.scheduler │ Scheduler started
+17:21:22 │ INFO     │ app.services.scheduler_service │ 📅 Scheduler started with 5 jobs: Daily Briefing (08:00), Meeting Prep (every 15 min), Weekly Review (friday 18:00), Conflict Detection (every 30 min), Smart Rescheduling (every hour)
+17:21:22 │ INFO     │ app.main │ ✅ System ready — Sūtradhāra at your service! 🎭
+INFO:     Application startup complete.
+17:36:22 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 17:51:22 IST)" (scheduled at 2026-04-26 17:36:22.747459+05:30)
+17:36:22 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+17:36:23 │ INFO     │ app.agents.crew │ Building agent crew with model: gemini-2.5-pro
+17:36:23 │ INFO     │ app.agents.crew │ ✅ Created calendar_specialist (×2)
+17:36:23 │ INFO     │ app.agents.crew │ ✅ Created notion_specialist (×2)
+17:36:23 │ INFO     │ app.agents.crew │ ✅ Created planner
+17:36:23 │ INFO     │ app.agents.crew │ ✅ Created focus_agent
+17:36:23 │ INFO     │ app.agents.crew │ ✅ Root Agent 'manager' created with sub-agents: ['calendar_specialist', 'notion_specialist', 'planner', 'focus_agent']
+17:36:23 │ INFO     │ app.agents.crew │ ✅ ADK Runner initialized for 'productivity-crew'
+17:36:23 │ INFO     │ app.agents.crew │ Created new ADK session 3bd9527c…
+17:36:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:36:27 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:36:27 │ WARNING  │ google_genai.types │ Warning: there are non-text parts in the response: ['function_call'], returning concatenated text result from text parts. Check the full candidates.content.parts accessor to get the full model response.
+17:36:27 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:36:37 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:36:37 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:36:42 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/api_core/_python_version_support.py:275: FutureWarning: You are using a Python version (3.10.12) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+17:36:42 │ INFO     │ googleapiclient.discovery_cache │ file_cache is only supported with oauth2client<4.0.0
+17:36:43 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:36:47 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:36:47 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+17:36:51 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+17:36:51 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+17:36:51 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 17:51:22 IST)" executed successfully

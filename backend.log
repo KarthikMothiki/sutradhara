@@ -1,0 +1,31 @@
+21:18:10 │ INFO     │ app.main │ 📂 Frontend mounted from /home/ogmen/gen_ai_apac_challenge_hackathon/frontend
+INFO:     Started server process [43513]
+INFO:     Waiting for application startup.
+21:18:10 │ INFO     │ app.main │ 🚀 Starting Multi-Agent Task Management System…
+21:18:10 │ INFO     │ app.main │    Model chain: gemini-2.5-pro,gemini-2.5-flash
+21:18:10 │ INFO     │ app.main │    Database: sqlite+aiosqlite:///./data/app.db
+21:18:10 │ INFO     │ app.main │    Scheduler: enabled
+21:18:10 │ INFO     │ app.main │ ✅ Database initialized
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Adding job tentatively -- it will be properly scheduled when the scheduler starts
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Daily Briefing" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Meeting Prep" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Weekly Review" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Conflict Detection" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Smart Rescheduling Check" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Plan" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Focus Weekly Review" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Focus Deadline Alert" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Added job "Proactive System Audit" to job store "default"
+21:18:10 │ INFO     │ apscheduler.scheduler │ Scheduler started
+21:18:10 │ INFO     │ app.services.scheduler_service │ 📅 Scheduler started with 6 jobs: Daily Briefing (08:00), Meeting Prep (every 15 min), Weekly Review (friday 18:00), Conflict Detection (every 30 min), Smart Rescheduling (every hour), Proactive Audit (every 4 hours)
+21:18:10 │ INFO     │ app.main │ ✅ System ready — Sūtradhāra at your service! 🎭
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8081 (Press CTRL+C to quit)

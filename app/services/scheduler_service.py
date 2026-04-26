@@ -14,6 +14,11 @@ logger = logging.getLogger(__name__)
 # ── Scheduler Singleton ─────────────────────────────────────────
 scheduler = AsyncIOScheduler()
 
+async def proactive_audit_job():
+    """Trigger the Anticipator for a full system health check."""
+    from app.services.anticipator_service import anticipator_service
+    await anticipator_service.run_proactive_audit()
+
 
 async def daily_briefing_job():
     """Compile today's calendar events + overdue Notion tasks into a summary.
@@ -23,6 +28,9 @@ async def daily_briefing_job():
     """
     logger.info("🌅 Running Daily Briefing job…")
     try:
+        from app.services.anticipator_service import anticipator_service
+        await anticipator_service.run_proactive_audit()
+        
         from app.agents.crew import run_agent_query  # lazy import to avoid circular
 
         result = await run_agent_query(
@@ -294,14 +302,25 @@ def setup_scheduler() -> None:
         replace_existing=True,
     )
 
+    # ── Job 6: Proactive Audit (every 4 hours) ─────────────
+    scheduler.add_job(
+        proactive_audit_job,
+        "interval",
+        hours=4,
+        id="proactive_audit",
+        name="Proactive System Audit",
+        replace_existing=True,
+    )
+
     scheduler.start()
     logger.info(
-        "📅 Scheduler started with 5 jobs: "
+        "📅 Scheduler started with 6 jobs: "
         f"Daily Briefing ({hour:02d}:{minute:02d}), "
         f"Meeting Prep (every 15 min), "
         f"Weekly Review ({settings.weekly_review_day} {review_hour:02d}:{review_minute:02d}), "
         f"Conflict Detection (every 30 min), "
-        f"Smart Rescheduling (every hour)"
+        f"Smart Rescheduling (every hour), "
+        f"Proactive Audit (every 4 hours)"
     )
 
 

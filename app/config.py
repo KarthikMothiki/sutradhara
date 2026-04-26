@@ -23,10 +23,15 @@ class Settings(BaseSettings):
     google_cloud_project: str = ""
     google_cloud_location: str = "us-central1"
 
+    # ── Demo Mode ────────────────────────────────────────────────
+    # When True, all MCP calls return seed data instead of hitting live APIs
+    demo_mode: bool = bool(os.getenv("DEMO_MODE", "false").lower() in ("true", "1"))
+
     # ── Model Fallback Chain ────────────────────────────────────
     # Comma-separated list: tries each model in order until one works
+    # gemini-2.5-flash for Manager; gemini-2.0-flash-lite for Planner/Focus
     model_fallback_chain: str = (
-        "gemini-1.5-pro,gemini-1.5-flash,gemini-1.0-pro"
+        "gemini-2.5-flash,gemini-2.0-flash,gemini-2.0-flash-lite"
     )
 
 
@@ -39,7 +44,8 @@ class Settings(BaseSettings):
     notion_database_id: str = ""
 
     # ── Database ────────────────────────────────────────────────
-    database_url: str = "sqlite+aiosqlite:///./data/app.db"
+    # For Cloud SQL: postgresql+asyncpg://user:password@/dbname?host=/cloudsql/project:region:instance
+    database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./sutradhara.db")
 
     # ── Server ──────────────────────────────────────────────────
     port: int = 8080

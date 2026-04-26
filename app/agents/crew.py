@@ -27,12 +27,14 @@ from app.agents.manager import MANAGER_CONFIG
 from app.agents.notion_specialist import NOTION_SPECIALIST_CONFIG
 from app.agents.planner import PLANNER_CONFIG
 from app.agents.focus_agent import FOCUS_AGENT_CONFIG
+from app.agents.anticipator import ANTICIPATOR_CONFIG
 from app.agents.tools.rollback_tools import (
     log_reversible_action,
     undo_conversation_actions,
     undo_last_action,
 )
 from app.agents.tools.visualization import generate_workflow_diagram
+from app.agents.tools.thought_tools import record_thought
 
 from app.config import get_settings
 
@@ -124,9 +126,9 @@ def _build_agents() -> Agent:
 
     # ── Calendar Specialist (with MCP tools) ────────────────
     calendar_tools = _get_calendar_function_tools()
+    calendar_tools.append(record_thought)
 
-    # We need separate agent instances for the manager and the planner
-    # because ADK does not allow an agent to have more than one parent.
+    # Note: Each parent MUST have its own copy of a sub-agent in ADK
     calendar_agent_for_manager = Agent(
         name="calendar_specialist",
         model=model,
@@ -134,7 +136,6 @@ def _build_agents() -> Agent:
         instruction=_with_context(CALENDAR_SPECIALIST_CONFIG["instruction"]),
         tools=calendar_tools,
     )
-
     calendar_agent_for_planner = Agent(
         name="calendar_specialist_planner",
         model=model,
@@ -142,10 +143,18 @@ def _build_agents() -> Agent:
         instruction=_with_context(CALENDAR_SPECIALIST_CONFIG["instruction"]),
         tools=calendar_tools,
     )
-    logger.info("✅ Created calendar_specialist (×2)")
+    calendar_agent_for_anticipator = Agent(
+        name="calendar_specialist_anticipator",
+        model=model,
+        description=CALENDAR_SPECIALIST_CONFIG["description"],
+        instruction=_with_context(CALENDAR_SPECIALIST_CONFIG["instruction"]),
+        tools=calendar_tools,
+    )
+    logger.info("✅ Created calendar_specialist (×3)")
 
     # ── Notion Specialist (with MCP tools) ──────────────────
     notion_tools = _get_notion_function_tools()
+    notion_tools.append(record_thought)
 
     notion_agent_for_manager = Agent(
         name="notion_specialist",
@@ -154,7 +163,6 @@ def _build_agents() -> Agent:
         instruction=_with_context(NOTION_SPECIALIST_CONFIG["instruction"]),
         tools=notion_tools,
     )
-
     notion_agent_for_planner = Agent(
         name="notion_specialist_planner",
         model=model,
@@ -162,7 +170,14 @@ def _build_agents() -> Agent:
         instruction=_with_context(NOTION_SPECIALIST_CONFIG["instruction"]),
         tools=notion_tools,
     )
-    logger.info("✅ Created notion_specialist (×2)")
+    notion_agent_for_anticipator = Agent(
+        name="notion_specialist_anticipator",
+        model=model,
+        description=NOTION_SPECIALIST_CONFIG["description"],
+        instruction=_with_context(NOTION_SPECIALIST_CONFIG["instruction"]),
+        tools=notion_tools,
+    )
+    logger.info("✅ Created notion_specialist (×3)")
 
     # ── Planner (delegates to its own specialist copies) ────
     planner_agent = Agent(
@@ -178,6 +193,7 @@ def _build_agents() -> Agent:
     # ── Focus Agent ─────────────────────────────────────────
     from app.agents.tools.focus_tools import get_focus_agent_tools
     focus_tools = get_focus_agent_tools()
+    focus_tools.append(record_thought)
     
     focus_agent_for_manager = Agent(
         name=FOCUS_AGENT_CONFIG["name"],
@@ -186,6 +202,15 @@ def _build_agents() -> Agent:
         instruction=_with_context(FOCUS_AGENT_CONFIG["instruction"]),
         tools=focus_tools,
     )
+    
+    anticipator_agent = Agent(
+        name=ANTICIPATOR_CONFIG["name"],
+        model=model,
+        description=ANTICIPATOR_CONFIG["description"],
+        instruction=_with_context(ANTICIPATOR_CONFIG["instruction"]),
+        sub_agents=[calendar_agent_for_anticipator, notion_agent_for_anticipator], # Dedicated copies
+    )
+    logger.info("✅ Created anticipator_agent")
     logger.info("✅ Created focus_agent")
 
     # ── Manager (root agent — delegates to all) ─────────────
@@ -194,12 +219,13 @@ def _build_agents() -> Agent:
         model=model,
         description=MANAGER_CONFIG["description"],
         instruction=_with_context(MANAGER_CONFIG["instruction"]),
-        sub_agents=[calendar_agent_for_manager, notion_agent_for_manager, planner_agent, focus_agent_for_manager],
+        sub_agents=[calendar_agent_for_manager, notion_agent_for_manager, planner_agent, focus_agent_for_manager, anticipator_agent],
         tools=[
             undo_last_action,
             undo_conversation_actions,
             log_reversible_action,
             generate_workflow_diagram,
+            record_thought,
         ],
         output_key="last_response",
     )
@@ -232,6 +258,12 @@ def _get_calendar_function_tools() -> list:
             Dict with events list or error message.
         """
         try:
+            # ── DEMO MODE BYPASS ────────────────────────────────────
+            if get_settings().demo_mode:
+                from app.services.demo_service import get_demo_calendar
+                events = get_demo_calendar()
+                return {"events": events, "count": len(events), "source": "demo"}
+            # ── END DEMO MODE BYPASS ───────────────────────────────
             service = build_calendar_service()
             if not service:
                 return {"error": "Google Calendar not authenticated. Run OAuth setup first."}
@@ -310,63 +342,54 @@ def _get_calendar_function_tools() -> list:
             return {"error": str(e)}
 
 
-    def update_event(
+    async def update_event(
         event_id: str,
         title: str = "",
         start: str = "",
         end: str = "",
         description: str = "",
     ) -> dict:
-        """Update an existing calendar event.
-
-        Args:
-            event_id: The event ID to update
-            title: New title (optional)
-            start: New start datetime (optional)
-            end: New end datetime (optional)
-            description: New description (optional)
-
-        Returns:
-            Dict with updated event details or error.
-        """
+        """Update an existing calendar event. Required to be STAGED for human approval."""
+        from app.services.pending_actions_service import pending_actions_service
         try:
-            service = build_calendar_service()
-            if not service:
-                return {"error": "Google Calendar not authenticated."}
-
-            existing = service.events().get(calendarId="primary", eventId=event_id).execute()
-            if title:
-                existing["summary"] = title
-            if start:
-                existing["start"] = {"dateTime": start}
-            if end:
-                existing["end"] = {"dateTime": end}
-            if description:
-                existing["description"] = description
-
-            updated = service.events().update(
-                calendarId="primary", eventId=event_id, body=existing
-            ).execute()
-            return {"id": event_id, "title": updated.get("summary"), "status": "updated"}
+            conv_id = ctx_conversation_id.get()
+            db = ctx_db.get()
+            
+            payload = {
+                "eventId": event_id, "title": title, "start": start, "end": end, 
+                "description": description
+            }
+            
+            action_id = await pending_actions_service.create_draft(
+                db, conv_id, "update_event", "calendar", payload, "calendar_specialist"
+            )
+            
+            return {
+                "status": "staged",
+                "action_id": action_id,
+                "message": f"I've staged the event update for '{title or event_id}' for your approval."
+            }
         except Exception as e:
             return {"error": str(e)}
 
-    def delete_event(event_id: str) -> dict:
-        """Delete a calendar event.
-
-        Args:
-            event_id: The event ID to delete
-
-        Returns:
-            Confirmation or error.
-        """
+    async def delete_event(event_id: str) -> dict:
+        """Delete a calendar event. Required to be STAGED for human approval."""
+        from app.services.pending_actions_service import pending_actions_service
         try:
-            service = build_calendar_service()
-            if not service:
-                return {"error": "Google Calendar not authenticated."}
-
-            service.events().delete(calendarId="primary", eventId=event_id).execute()
-            return {"id": event_id, "status": "deleted"}
+            conv_id = ctx_conversation_id.get()
+            db = ctx_db.get()
+            
+            payload = {"eventId": event_id}
+            
+            action_id = await pending_actions_service.create_draft(
+                db, conv_id, "delete_event", "calendar", payload, "calendar_specialist"
+            )
+            
+            return {
+                "status": "staged",
+                "action_id": action_id,
+                "message": f"I've staged the deletion of event '{event_id}' for your approval."
+            }
         except Exception as e:
             return {"error": str(e)}
 
@@ -385,6 +408,21 @@ def _get_calendar_function_tools() -> list:
             Dict with free time slots.
         """
         try:
+            # ── DEMO MODE BYPASS ────────────────────────────────────
+            if get_settings().demo_mode:
+                from app.services.demo_service import get_demo_calendar
+                events = get_demo_calendar()
+                # Filter to requested date if possible, else return all
+                return {
+                    "date": date,
+                    "free_slots": [
+                        {"start": "14:00", "end": "16:00", "label": "Afternoon block (2h)"},
+                        {"start": "17:00", "end": "18:30", "label": "Late afternoon (1.5h)"},
+                    ],
+                    "count": 2,
+                    "source": "demo",
+                }
+            # ── END DEMO MODE BYPASS ───────────────────────────────
             service = build_calendar_service()
             if not service:
                 return {"error": "Google Calendar not authenticated."}
@@ -459,6 +497,16 @@ def _get_notion_function_tools() -> list:
             Dict with matching pages.
         """
         try:
+            # ── DEMO MODE BYPASS ────────────────────────────────────
+            if get_settings().demo_mode:
+                from app.services.demo_service import get_demo_notion
+                tasks = get_demo_notion()
+                # Filter by priority/status if requested
+                if filter_value:
+                    tasks = [t for t in tasks if filter_value.lower() in t.get('priority','').lower()
+                             or filter_value.lower() in t.get('status','').lower()]
+                return {"pages": tasks, "count": len(tasks), "source": "demo"}
+            # ── END DEMO MODE BYPASS ───────────────────────────────
             import httpx
             from app.config import get_settings
 
@@ -551,7 +599,7 @@ def _get_notion_function_tools() -> list:
             return {"error": str(e)}
 
 
-    def update_notion_page(
+    async def update_notion_page(
         page_id: str,
         status: str = "",
         priority: str = "",
@@ -559,45 +607,26 @@ def _get_notion_function_tools() -> list:
         deadline: str = "",
         due_date: str = "",
     ) -> dict:
-        """Update a Notion page's properties.
-
-        Args:
-            page_id: The page ID to update
-            status: New status value (optional)
-            priority: New priority value (optional)
-            title: New title (optional)
-            deadline: New deadline date in ISO format like YYYY-MM-DD (optional, maps to "Deadline" property)
-            due_date: New due date in ISO format like YYYY-MM-DD (optional, maps to "Due Date" property)
-
-        Returns:
-            Confirmation or error.
-        """
+        """Update a Notion page's properties. Required to be STAGED for human approval."""
+        from app.services.pending_actions_service import pending_actions_service
         try:
-            import httpx
-
-            properties: dict[str, Any] = {}
-            if status:
-                properties["Status"] = {"status": {"name": status}}
-            if priority:
-                properties["Priority"] = {"select": {"name": priority}}
-            if title:
-                properties["Name"] = {"title": [{"text": {"content": title}}]}
-            if deadline:
-                properties["Deadline"] = {"date": {"start": deadline}}
-            if due_date:
-                properties["Due Date"] = {"date": {"start": due_date}}
-
-            if not properties:
-                return {"error": "No properties to update. Provide status, priority, title, deadline, or due_date."}
-
-            resp = httpx.patch(
-                f"https://api.notion.com/v1/pages/{page_id}",
-                headers=_notion_headers(),
-                json={"properties": properties},
-                timeout=15,
+            conv_id = ctx_conversation_id.get()
+            db = ctx_db.get()
+            
+            payload = {
+                "page_id": page_id, "status": status, "priority": priority, 
+                "title": title, "deadline": deadline, "due_date": due_date
+            }
+            
+            action_id = await pending_actions_service.create_draft(
+                db, conv_id, "update_notion_page", "notion", payload, "notion_specialist"
             )
-            resp.raise_for_status()
-            return {"id": page_id, "status": "updated"}
+            
+            return {
+                "status": "staged",
+                "action_id": action_id,
+                "message": f"I've staged the update for Notion task '{title or page_id}' for your approval."
+            }
         except Exception as e:
             return {"error": str(e)}
 
@@ -647,6 +676,45 @@ def _get_notion_function_tools() -> list:
 
     return [query_notion_database, create_notion_page, update_notion_page, search_notion]
 
+def _detect_conflicts(events: list[dict]) -> list[dict]:
+    """Analyze calendar events for overlapping time windows."""
+    from datetime import datetime as dt
+    conflicts = []
+    sorted_events = sorted(events, key=lambda e: e.get("start", {}).get("dateTime", e.get("start", {}).get("date", "")))
+
+    for i in range(len(sorted_events)):
+        for j in range(i + 1, len(sorted_events)):
+            a = sorted_events[i]
+            b = sorted_events[j]
+            try:
+                a_end = a.get("end", {}).get("dateTime", "")
+                b_start = b.get("start", {}).get("dateTime", "")
+                
+                # If they are just dates (all-day events), skip conflict checking for now
+                if not ("T" in a_end and "T" in b_start):
+                    continue
+
+                a_end_dt = dt.fromisoformat(a_end.replace("Z", "+00:00"))
+                b_start_dt = dt.fromisoformat(b_start.replace("Z", "+00:00"))
+                
+                if a_end_dt > b_start_dt:
+                    a_start_dt = dt.fromisoformat(a.get("start", {}).get("dateTime", "").replace("Z", "+00:00"))
+                    b_end_dt = dt.fromisoformat(b.get("end", {}).get("dateTime", "").replace("Z", "+00:00"))
+                    overlap = min(a_end_dt, b_end_dt) - max(a_start_dt, b_start_dt)
+                    overlap_min = int(overlap.total_seconds() / 60)
+                    
+                    if overlap_min > 0:
+                        conflicts.append({
+                            "eventA": {"title": a.get("summary", "Event A"), "start": a_start_dt.isoformat(), "end": a_end_dt.isoformat()},
+                            "eventB": {"title": b.get("summary", "Event B"), "start": b_start_dt.isoformat(), "end": b_end_dt.isoformat()},
+                            "overlap": overlap_min
+                        })
+            except (ValueError, TypeError) as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Error parsing dates for conflict check: {e}")
+                continue
+
+    return conflicts
 
 def _get_runner() -> Runner:
     """Get or create the ADK Runner (lazy initialization)."""
@@ -716,6 +784,28 @@ async def run_agent_query(
             session_id=adk_session_id,
         )
         logger.info(f"Created new ADK session {session.id[:8]}…")
+
+    # ── Synthetic Loom Trace (G3) ──
+    async def _emit_start_trace():
+        await asyncio.sleep(0.1)
+        from app.services.trace_service import trace_service
+        await trace_service.emit_loom_event(adk_session_id, "manager", "THOUGHT", f'Parsing intent: "{query[:60]}..."')
+        await asyncio.sleep(0.4)
+        target = "scheduler" if any(k in query.lower() for k in ["calendar", "schedule", "meet", "time", "busy", "slot"]) else "notion"
+        await trace_service.emit_loom_event(adk_session_id, "manager", "DELEGATION", f"Orchestrating workflow → delegating to {target}_specialist")
+        await asyncio.sleep(0.3)
+    
+    asyncio.create_task(_emit_start_trace())
+
+    # ── Inject User Memory/Preferences ──
+    try:
+        from app.services.memory_service import memory_service
+        user_context = await memory_service.get_active_context(ctx_db.get())
+        if user_context:
+            query = f"{user_context}\n\nUSER REQUEST: {query}"
+            logger.info("🧠 Injected long-term user memory into query")
+    except Exception as e:
+        logger.warning(f"Failed to inject user memory: {e}")
 
     # Build the user message
     user_content = Content(
@@ -838,9 +928,17 @@ async def run_agent_query(
 
                             # Emit to Canvas (Action Theater)
                             if tool_name == "list_events":
-                                asyncio.create_task(trace_service.emit_canvas_event(
-                                    adk_session_id, "CALENDAR_CONFLICT", res_data, author
-                                ))
+                                events = res_data.get("events", [])
+                                conflict_pairs = _detect_conflicts(events)
+                                if conflict_pairs:
+                                    for conflict in conflict_pairs:
+                                        asyncio.create_task(trace_service.emit_canvas_event(
+                                            adk_session_id, "CONFLICT_RED_ZONE", conflict, author
+                                        ))
+                                else:
+                                    asyncio.create_task(trace_service.emit_canvas_event(
+                                        adk_session_id, "CALENDAR_DATA", res_data, author
+                                    ))
                             elif tool_name == "query_notion_database":
                                 pages = res_data.get("pages", [])
                                 tasks = [{"title": p.get("title", "Untitled"), "priority": p.get("priority", "Med")} for p in pages]
@@ -859,6 +957,10 @@ async def run_agent_query(
                                     adk_session_id, "DRAFT_ACTION", 
                                     {"title": f"Schedule {res_data.get('title')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
                                     author
+                                ))
+                            elif tool_name == "record_thought":
+                                asyncio.create_task(trace_service.emit_agent_thought(
+                                    adk_session_id, author, res_data.get("thought", "")
                                 ))
 
             except Exception as inner_e:
@@ -883,6 +985,38 @@ async def run_agent_query(
             # Optionally broadcast it instantly to any open WebSockets
             from app.services.trace_service import trace_service
             asyncio.create_task(trace_service.emit_workflow_diagram(adk_session_id, diagram))
+
+    # Save final result to DB and trigger memory extraction
+    try:
+        from app.database.models import Conversation, ConversationStatus
+        from app.database.engine import get_session_factory
+        factory = get_session_factory()
+        async with factory() as db_session:
+            from sqlalchemy import select
+            stmt = select(Conversation).where(Conversation.id == adk_session_id)
+            conv = (await db_session.execute(stmt)).scalar_one_or_none()
+            if conv:
+                conv.final_response = response_text or "No response generated."
+                conv.status = ConversationStatus.COMPLETED
+                conv.workflow_diagram = diagram
+                await db_session.commit()
+                
+                # ── Trigger Background Memory Extraction ──
+                try:
+                    from app.services.memory_service import memory_service
+                    asyncio.create_task(memory_service.extract_preferences(db_session, conv.id))
+                    logger.info("🧠 Learning from this interaction…")
+                except Exception as e:
+                    logger.warning(f"Memory extraction failed: {e}")
+    except Exception as e:
+        logger.error(f"Failed to update conversation final state: {e}")
+
+    # ── Final Loom Synthesis (G3) ──
+    async def _emit_end_trace():
+        from app.services.trace_service import trace_service
+        await trace_service.emit_loom_event(adk_session_id, "manager", "SYNTHESIS", "Synthesizing cross-app context for final briefing...")
+    
+    asyncio.create_task(_emit_end_trace())
 
     return {
         "response": response_text or "No response generated.",

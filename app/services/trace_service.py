@@ -173,6 +173,37 @@ class TraceService:
             timestamp=datetime.now(timezone.utc),
         ))
 
+    async def emit_agent_thought(
+        self,
+        conversation_id: str,
+        agent_name: str,
+        thought: str,
+    ) -> None:
+        """Shorthand: emit an agent_thought event for live reasoning visualization."""
+        await self.emit(TraceEvent(
+            conversation_id=conversation_id,
+            event_type="agent_thought",
+            agent_name=agent_name,
+            data={"thought": thought},
+            timestamp=datetime.now(timezone.utc),
+        ))
+
+    async def emit_loom_event(
+        self,
+        conversation_id: str,
+        agent_name: str,
+        event_type: str,
+        text: str,
+    ) -> None:
+        """General emitter for Loom trace entries (THOUGHT, DELEGATION, SYNTHESIS, etc)."""
+        await self.emit(TraceEvent(
+            conversation_id=conversation_id,
+            event_type="loom_event",
+            agent_name=agent_name,
+            data={"type": event_type, "text": text},
+            timestamp=datetime.now(timezone.utc),
+        ))
+
 
 
 # ── Singleton ───────────────────────────────────────────────────

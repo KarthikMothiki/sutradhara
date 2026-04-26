@@ -11,9 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.database.engine import get_db
-from app.database.models import ActionLog, Conversation, ConversationStatus, WorkflowRun, WorkflowRunStatus, PendingAction
+from app.database.models import ActionLog, Conversation, ConversationStatus, WorkflowRun, WorkflowRunStatus, PendingAction, DashboardAlert
 from app.services.demo_service import seed_demo_data
 from app.services.pending_actions_service import pending_actions_service
+from app.services.anticipator_service import anticipator_service
 
 
 from app.database.schemas import (
@@ -340,41 +341,98 @@ async def submit_feedback(
     return {"status": "ok", "message": "Thank you for your feedback!"}
 
 
-# ── POST /api/v1/demo/seed ──────────────────────────────────────
+# ── Intelligence Suite Endpoints ──────────────────────────────
 
-@router.post("/demo/seed")
-async def trigger_demo_seed(
-    db: AsyncSession = Depends(get_db),
-):
-    """Seed the database with a known good state for demo purposes."""
+@router.get("/intelligence/alerts")
+async def get_dashboard_alerts(db: AsyncSession = Depends(get_db)):
+    """Fetch active proactive alerts from the Anticipator."""
+    from app.database.models import DashboardAlert
+    result = await db.execute(
+        select(DashboardAlert)
+        .where(DashboardAlert.is_dismissed == False)
+        .order_by(DashboardAlert.created_at.desc())
+    )
+    alerts = result.scalars().all()
+    return [{
+        "id": a.id,
+        "title": a.title,
+        "message": a.message,
+        "severity": a.severity,
+        "created_at": a.created_at
+    } for a in alerts]
+
+@router.post("/intelligence/alerts/{alert_id}/dismiss")
+async def dismiss_alert(alert_id: str, db: AsyncSession = Depends(get_db)):
+    """Dismiss a dashboard alert."""
+    from app.database.models import DashboardAlert
+    result = await db.execute(select(DashboardAlert).where(DashboardAlert.id == alert_id))
+    alert = result.scalar_one_or_none()
+    if alert:
+        alert.is_dismissed = True
+        await db.commit()
+        return {"status": "ok"}
+    raise HTTPException(status_code=404, detail="Alert not found")
+
+@router.post("/intelligence/briefing")
+async def trigger_live_briefing(db: AsyncSession = Depends(get_db)):
+    """Trigger a live proactive audit and return the latest insights."""
+    await anticipator_service.run_proactive_audit()
+    # Fetch the alerts generated
+    result = await db.execute(
+        select(DashboardAlert)
+        .order_by(DashboardAlert.created_at.desc())
+        .limit(5)
+    )
+    alerts = result.scalars().all()
+    return {
+        "status": "ok",
+        "alerts": [{
+            "title": a.title,
+            "message": a.message,
+            "severity": a.severity
+        } for a in alerts]
+    }
+
+@router.get("/demo/seed")
+async def seed_demo(db: AsyncSession = Depends(get_db)):
+    """Seed the database with rich demo data for the judge's walk-through."""
     return await seed_demo_data(db)
 
+# ── Draft-Approval Flow Endpoints ──────────────────────────────
 
-# ── POST /api/v1/actions/{id}/approve ───────────────────────────
+@router.get("/actions/pending")
+async def get_pending_actions(
+    conversation_id: str | None = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """List pending actions that require human approval."""
+    from app.database.models import PendingAction
+    query = select(PendingAction).where(PendingAction.status == "pending")
+    if conversation_id:
+        query = query.where(PendingAction.conversation_id == conversation_id)
+    
+    result = await db.execute(query)
+    actions = result.scalars().all()
+    
+    return [{
+        "id": a.id,
+        "conversation_id": a.conversation_id,
+        "action_type": a.action_type,
+        "service": a.service,
+        "payload": a.proposed_payload,
+        "status": a.status,
+        "created_at": a.created_at
+    } for a in actions]
 
 @router.post("/actions/{action_id}/approve")
-async def approve_action(
-    action_id: str,
-    db: AsyncSession = Depends(get_db),
-):
-    """Execute a pending staged action."""
-    result = await pending_actions_service.approve(db, action_id)
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result["error"])
-    return result
-
-
-# ── POST /api/v1/actions/{id}/reject ────────────────────────────
+async def approve_action(action_id: str, db: AsyncSession = Depends(get_db)):
+    """Approve and execute a staged action."""
+    return await pending_actions_service.approve(db, action_id)
 
 @router.post("/actions/{action_id}/reject")
-async def reject_action(
-    action_id: str,
-    db: AsyncSession = Depends(get_db),
-):
-    """Reject and dismiss a pending staged action."""
+async def reject_action(action_id: str, db: AsyncSession = Depends(get_db)):
+    """Reject and dismiss a staged action."""
     success = await pending_actions_service.reject(db, action_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Action not found")
-    return {"status": "rejected"}
-
-
+    if success:
+        return {"status": "rejected", "action_id": action_id}
+    raise HTTPException(status_code=404, detail="Action not found")

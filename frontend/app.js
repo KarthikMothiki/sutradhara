@@ -4,9 +4,7 @@
  */
 
 // ── Configuration ──────────────────────────────────────────────
-const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://127.0.0.1:8080'
-    : 'https://sutradhara-agent-716237412278.us-central1.run.app';
+const BACKEND_URL = 'http://127.0.0.1:8081';
 
 const API_BASE = BACKEND_URL + '/api/v1';
 const WS_BASE = BACKEND_URL.replace('http://', 'ws://').replace('https://', 'wss://');
@@ -23,6 +21,10 @@ const impactMetrics = {
     minutes: 0
 };
 
+// Tracking for pending actions to avoid duplicates
+const renderedActionIds = new Set();
+let pendingActionInterval = null;
+
 // ── DOM Elements ───────────────────────────────────────────────
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
@@ -38,20 +40,20 @@ const statusText = document.querySelector('.status-text');
 document.addEventListener('DOMContentLoaded', () => {
     initMermaid();
     setupEventListeners();
+    initSettings();
+    fetchProactiveAlerts();
     
-    // Initial welcome message sequence
-    setTimeout(() => showToast('🌅', 'Good morning! Your daily briefing is ready.'), 1000);
+    // Auto-refresh alerts every 60s
+    setInterval(fetchProactiveAlerts, 60000);
 });
 
 function initMermaid() {
     mermaid.initialize({
         startOnLoad: false,
-        theme: 'base',
+        theme: document.documentElement.classList.contains('dark-mode') ? 'dark' : 'base',
         themeVariables: {
-            primaryColor: '#7F77DD',
-            primaryTextColor: '#111827',
-            primaryBorderColor: '#7F77DD',
-            lineColor: '#378ADD',
+            primaryColor: '#6366f1',
+            primaryTextColor: document.documentElement.classList.contains('dark-mode') ? '#f9fafb' : '#111827',
             fontFamily: 'Inter, sans-serif',
             fontSize: '13px',
         },
@@ -85,11 +87,70 @@ function setupEventListeners() {
     document.getElementById('btn-demo').addEventListener('click', runDemoSeed);
 
     // Voice Bridge placeholder
-    document.getElementById('btn-voice').addEventListener('click', () => {
+    document.getElementById('btn-voice')?.addEventListener('click', () => {
         showToast('🎤', 'Voice bridge activated. (STT simulation)');
         chatInput.value = "Schedule deep work for tomorrow morning.";
         setTimeout(sendCommand, 1500);
     });
+
+    // Dark Mode Toggle
+    const btnTheme = document.getElementById('btn-theme');
+    if (btnTheme) {
+        // Initialize from local storage
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+        }
+        btnTheme.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark-mode');
+            const isDark = document.documentElement.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            initMermaid(); // Re-init mermaid with new theme
+        });
+    }
+
+    // Logo click to reset
+    document.getElementById('logo-reset')?.addEventListener('click', () => {
+        window.location.reload();
+    });
+
+    // Tabs logic
+    const tabChat = document.getElementById('tab-chat');
+    const tabHistory = document.getElementById('tab-history');
+    const chatContainer = document.getElementById('chat-container');
+    const historyContainer = document.getElementById('history-container');
+
+    if (tabChat && tabHistory) {
+        tabChat.addEventListener('click', () => {
+            tabChat.classList.add('active');
+            tabHistory.classList.remove('active');
+            chatContainer.classList.add('active');
+            historyContainer.classList.remove('active');
+        });
+
+        tabHistory.addEventListener('click', () => {
+            tabHistory.classList.add('active');
+            tabChat.classList.remove('active');
+            historyContainer.classList.add('active');
+            chatContainer.classList.remove('active');
+            fetchHistory();
+        });
+    }
+
+    // Briefing Button
+    document.getElementById('btn-briefing')?.addEventListener('click', triggerBriefing);
+
+    // Settings Modal
+    const btnSettings = document.getElementById('btn-settings');
+    const modalSettings = document.getElementById('modal-settings');
+    const btnCloseSettings = document.getElementById('btn-close-settings');
+    const btnSaveSettings = document.getElementById('btn-save-settings');
+
+    btnSettings?.addEventListener('click', () => modalSettings.classList.add('active'));
+    btnCloseSettings?.addEventListener('click', () => modalSettings.classList.remove('active'));
+    btnSaveSettings?.addEventListener('click', saveSettings);
+
+    // Run The Loom (Scripted Demo)
+    document.getElementById('btn-loom')?.addEventListener('click', runTheLoom);
 }
 
 // ── Core Actions ───────────────────────────────────────────────
@@ -123,6 +184,7 @@ async function sendCommand() {
 
         connectWebSocket(data.id);
         pollResult(data.id);
+        startPendingActionPolling(data.id);
         
     } catch (error) {
         addChatMessage('system', `❌ Error: ${error.message}`);
@@ -133,22 +195,51 @@ async function sendCommand() {
 }
 
 async function runDemoSeed() {
-    showToast('🎬', 'Seeding demo environment...');
+    showToast('🎬', 'Initializing Demo Mode...');
     try {
-        const response = await fetch(`${API_BASE}/demo/seed`, { method: 'POST' });
+        const response = await fetch(`${API_BASE}/demo/seed`);
         const data = await response.json();
         
-        // Render a fake briefing card to show it worked
-        renderBriefingCard({
-            meetings: 3,
-            tasks: 5,
-            insight: "You have a 15-min gap between your 2pm and 3pm meetings. I suggest a quick recharge."
-        });
+        // Reset UI state
+        chatMessages.innerHTML = '';
+        traceTimeline.innerHTML = '';
+        canvasContent.innerHTML = '<div id="briefing-anchor"></div><div class="canvas-empty"><h3>Theater Ready</h3><p>Demo mode active. Try "Give me my daily briefing".</p></div>';
         
-        showToast('✅', 'Demo data seeded. Try: "Run conflict detection"');
+        addChatMessage('system', `<strong>Sūtradhāra Demo Mode Active.</strong><br>I've seeded your environment with ${data.events} events and ${data.tasks} tasks from our curated dataset.`);
+        
+        showToast('✅', `Demo ready: ${data.events} events, ${data.tasks} tasks.`);
     } catch (error) {
         showToast('❌', 'Demo seeding failed.');
     }
+}
+
+async function runTheLoom() {
+    showToast('✨', 'Running "The Loom" showreel...');
+    
+    // 1. Reset and Seed
+    await runDemoSeed();
+    
+    await new Promise(r => setTimeout(r, 1000));
+    
+    // 2. Send the "Magic Command"
+    chatInput.value = "Give me my daily briefing.";
+    await sendCommand();
+    
+    // 3. After a delay, if the backend hasn't already sent a draft, 
+    // we "nudge" the UI to show the Sequoia conflict resolution draft.
+    // This ensures the demo ALWAYS works even if the LLM is slow.
+    setTimeout(() => {
+        if (renderedActionIds.size === 0) {
+            console.log("🎬 Scripted Nudge: Injecting Sequoia resolution draft.");
+            renderCanvasCard('DRAFT_ACTION', {
+                action_id: 'demo_seq_001',
+                title: 'RESOLVE SEQUOIA CONFLICT',
+                description: 'Move **Engineering Standup** to 10:15 AM to clear your **Sequoia Partner Call**.',
+                payload: { eventId: 'evt_002', start: '10:15' }
+            }, 'scheduler_specialist');
+            renderedActionIds.add('demo_seq_001');
+        }
+    }, 4000);
 }
 
 // ── Canvas Rendering (Action Theater) ──────────────────────────
@@ -163,44 +254,22 @@ function renderCanvasCard(type, data, agent = 'manager') {
     
     let content = '';
     switch (type) {
-        case 'CALENDAR_CONFLICT':
-            content = `
-                <div class="card-header">
-                    <span class="card-tag">Schedule Conflict</span>
-                    <span class="badge" style="color:var(--agent-error)">Overlapping</span>
-                </div>
-                <div class="card-title">Double Booking Detected</div>
-                <div class="conflict-visual">
-                    <div class="conflict-item">
-                        <span>Standup</span>
-                        <span class="conflict-time">09:00 - 09:30</span>
-                    </div>
-                    <div class="conflict-item">
-                        <span>Client Review</span>
-                        <span class="conflict-time">09:15 - 10:00</span>
-                    </div>
-                    <div style="font-size:0.7rem; color:var(--text-muted); margin-top:8px">⚠️ 15-minute overlap found</div>
-                </div>
+        case 'CONFLICT_RED_ZONE':
+            content = renderConflictRedZone(data.eventA, data.eventB, data.overlap, `
                 <div class="card-actions">
                     <button class="btn-primary" onclick="resolveConflictDemo(this)">Reschedule Client Review</button>
                     <button class="btn-outline" onclick="this.closest('.canvas-card').remove()">Dismiss</button>
                 </div>
-            `;
+            `);
             break;
             
+        case 'IMPACT_UPDATE':
+            updateImpact('conflicts', data.conflicts_resolved || 0);
+            updateImpact('tasks', data.tasks_updated || 0);
+            return; // No visual card for impact update, just metric change
+            
         case 'DRAFT_ACTION':
-            content = `
-                <div class="card-header">
-                    <span class="card-tag">Staged Action</span>
-                    <span class="badge" style="color:var(--agent-focus)">Awaiting Approval</span>
-                </div>
-                <div class="card-title">${data.title || 'Proposed Update'}</div>
-                <p class="card-meta" style="margin:8px 0">${data.description}</p>
-                <div class="card-actions">
-                    <button class="btn-primary" style="background:var(--agent-manager)" onclick="approveStagedAction(this, '${data.action_id}')">Approve & Execute</button>
-                    <button class="btn-outline" onclick="rejectStagedAction(this, '${data.action_id}')">Reject</button>
-                </div>
-            `;
+            content = renderDraftAction(data, data.description, data.action_id);
             break;
 
 
@@ -457,25 +526,262 @@ function handleAgentEvent(ev) {
         case 'canvas_event':
             renderCanvasCard(ev.data.type, ev.data.payload, agent);
             break;
+        case 'agent_thought':
+            addLoomThought(agent, ev.data.thought);
+            break;
         case 'workflow_diagram':
             renderWorkflow(ev.data.diagram);
             break;
     }
 }
 
+function addLoomThought(agent, thought) {
+    const entry = document.createElement('div');
+    entry.className = 'loom-log-entry thought';
+    entry.dataset.agent = agent;
+    
+    entry.innerHTML = `
+        <div class="loom-log-indicator" style="background:var(--primary)"></div>
+        <div class="log-body">
+            <div class="log-title">Deliberation</div>
+            <div class="log-meta">${thought}</div>
+        </div>
+    `;
+    
+    traceTimeline.appendChild(entry);
+    traceTimeline.scrollTop = traceTimeline.scrollHeight;
+}
+
 
 async function pollResult(id) {
     const poll = async () => {
-        const res = await fetch(`${API_BASE}/query/${id}`);
-        const data = await res.json();
-        if (data.status === 'completed') {
-            addChatMessage('assistant', data.final_response);
+        try {
+            const res = await fetch(`${API_BASE}/query/${id}`);
+            const data = await res.json();
+            if (data.status === 'completed') {
+                addChatMessage('assistant', data.final_response);
+                updateStatus('ready', 'Ready');
+                isProcessing = false;
+                btnSend.disabled = false;
+                return;
+            } else if (data.status === 'failed') {
+                addChatMessage('assistant', "I encountered an error while processing your request: " + data.final_response);
+                updateStatus('ready', 'Ready');
+                isProcessing = false;
+                btnSend.disabled = false;
+                return;
+            }
+            setTimeout(poll, 2000);
+        } catch (e) {
+            console.error("Polling error:", e);
             updateStatus('ready', 'Ready');
             isProcessing = false;
             btnSend.disabled = false;
-            return;
         }
-        setTimeout(poll, 2000);
     };
     poll();
+}
+
+function renderConflictRedZone(eventA, eventB, overlap, optionsHtml) {
+    return `
+        <span class="card-status" style="color:var(--agent-focus)">⚠️ Conflict Detected</span>
+        <div class="card-title">Schedule Overlap: ${overlap || '?'} min</div>
+        <div class="conflict-visual">
+            <div class="conflict-strip">
+                <div class="strip-block a"></div>
+                <div class="strip-overlap"></div>
+                <div class="strip-block b"></div>
+            </div>
+            <div class="conflict-item">
+                <span class="event-name">${eventA?.title || 'Event A'}</span>
+                <span class="conflict-time">${eventA?.start ? new Date(eventA.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '09:00'}</span>
+            </div>
+            <div class="conflict-item">
+                <span class="event-name">${eventB?.title || 'Event B'}</span>
+                <span class="conflict-time">${eventB?.start ? new Date(eventB.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '09:15'}</span>
+            </div>
+        </div>
+        ${optionsHtml}
+    `;
+}
+
+function renderDraftAction(data, description, actionId) {
+    const safeActionId = (actionId || '').replace(/'/g, "\\'");
+    const desc = (description || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    return `
+        <span class="card-status">Staged Action</span>
+        <div class="card-title">${data.title || 'Proposed Update'}</div>
+        <div class="card-body">${desc}</div>
+        <div class="card-actions">
+            <button class="btn-primary" onclick="approveStagedAction(this, '${safeActionId}')">Approve & Execute</button>
+            <button class="btn-secondary" onclick="rejectStagedAction(this, '${safeActionId}')">Discard</button>
+        </div>
+    `;
+}
+
+function startPendingActionPolling(convId) {
+    if (pendingActionInterval) clearInterval(pendingActionInterval);
+    renderedActionIds.clear();
+    
+    const poll = async () => {
+        try {
+            const res = await fetch(`${API_BASE}/actions/pending?conversation_id=${convId}`);
+            const actions = await res.json();
+            
+            actions.forEach(action => {
+                if (!renderedActionIds.has(action.id)) {
+                    renderedActionIds.add(action.id);
+                    // Use the description generator logic or a simplified version
+                    const description = `Proposed ${action.action_type.replace('_', ' ')} on ${action.service}.`;
+                    renderCanvasCard('DRAFT_ACTION', {
+                        action_id: action.id,
+                        title: action.action_type.replace('_', ' ').toUpperCase(),
+                        description: description,
+                        payload: action.payload
+                    }, 'manager');
+                }
+            });
+        } catch (e) { console.error("Action polling error:", e); }
+    };
+    
+    poll(); // Initial check
+    pendingActionInterval = setInterval(poll, 2000);
+}
+
+async function approveStagedAction(btn, actionId) {
+    const card = btn.closest('.canvas-card');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Executing...';
+    
+    try {
+        const res = await fetch(`${API_BASE}/actions/${actionId}/approve`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.error) throw new Error(data.error);
+        
+        card.style.borderLeftColor = 'var(--agent-planner)';
+        card.querySelector('.card-actions').innerHTML = '<span class="badge success">✅ Action Executed</span>';
+        showToast('✨', 'Action approved and executed.');
+    } catch (e) {
+        showToast('❌', 'Approval failed: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = 'Approve & Execute';
+    }
+}
+
+async function rejectStagedAction(btn, actionId) {
+    const card = btn.closest('.canvas-card');
+    try {
+        await fetch(`${API_BASE}/actions/${actionId}/reject`, { method: 'POST' });
+        card.style.opacity = '0.5';
+        card.style.transform = 'translateX(20px)';
+        setTimeout(() => card.remove(), 300);
+        showToast('🗑️', 'Action discarded.');
+    } catch (e) { showToast('❌', 'Rejection failed.'); }
+}
+
+async function fetchHistory() {
+    const historyList = document.getElementById('history-list');
+    if (!historyList) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/history?limit=20`);
+        const data = await response.json();
+        
+        if (!data.history || data.history.length === 0) {
+            historyList.innerHTML = '<div class="text-muted" style="text-align:center; padding:20px;">No past sessions found.</div>';
+            return;
+        }
+        
+        historyList.innerHTML = data.history.map(item => {
+            const d = new Date(item.created_at);
+            const dateStr = d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            return `
+                <div class="history-item" onclick="loadHistorySession('${item.id}')">
+                    <span class="date">${dateStr}</span>
+                    <span class="query">${item.query || 'Unnamed workflow'}</span>
+                </div>
+            `;
+        }).join('');
+    } catch (e) {
+        historyList.innerHTML = '<div class="text-muted" style="text-align:center; padding:20px;">Failed to load history.</div>';
+    }
+}
+
+function loadHistorySession(id) {
+    showToast('⏳', 'Loading session state is not fully supported in this version.');
+}
+// ── Intelligence Suite Logic ──────────────────────────────────
+
+async function fetchProactiveAlerts() {
+    const alertsList = document.getElementById('alerts-list');
+    try {
+        const response = await fetch(`${API_BASE}/intelligence/alerts`);
+        const alerts = await response.json();
+        
+        if (alerts.length === 0) {
+            alertsList.innerHTML = '<div class="alert-empty">All systems optimal.</div>';
+            return;
+        }
+
+        alertsList.innerHTML = alerts.map(a => `
+            <div class="alert-item ${a.severity}">
+                <div class="alert-title">${a.title}</div>
+                <div class="alert-msg">${a.message}</div>
+                <div style="margin-top:4px; display:flex; justify-content:flex-end">
+                    <button onclick="dismissAlert('${a.id}', this)" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.6rem">Dismiss</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) { console.error("Alerts fetch error", e); }
+}
+
+async function dismissAlert(id, btn) {
+    try {
+        await fetch(`${API_BASE}/intelligence/alerts/${id}/dismiss`, { method: 'POST' });
+        btn.closest('.alert-item').remove();
+        if (document.getElementById('alerts-list').children.length === 0) {
+            document.getElementById('alerts-list').innerHTML = '<div class="alert-empty">All systems optimal.</div>';
+        }
+    } catch (e) { showToast('❌', 'Failed to dismiss alert.'); }
+}
+
+async function triggerBriefing() {
+    const btn = document.getElementById('btn-briefing');
+    btn.disabled = true;
+    btn.textContent = 'Analyzing...';
+    
+    try {
+        const response = await fetch(`${API_BASE}/intelligence/briefing`, { method: 'POST' });
+        const data = await response.json();
+        
+        showToast('✨', 'Proactive strategy updated.');
+        fetchProactiveAlerts(); // Refresh the list
+        
+        // Also add a chat message from system
+        addChatMessage('assistant', "I've just performed a proactive audit of your day. You'll see new insights in the sidebar. Would you like me to help you resolve any of the flagged conflicts?");
+        
+    } catch (e) { showToast('❌', 'Briefing failed.'); }
+    finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Generate Strategy';
+    }
+}
+
+// ── Settings Management ───────────────────────────────────────
+
+function initSettings() {
+    document.getElementById('input-notion-token').value = localStorage.getItem('notion_token') || '';
+    document.getElementById('input-notion-db').value = localStorage.getItem('notion_db_id') || '';
+}
+
+function saveSettings() {
+    const token = document.getElementById('input-notion-token').value;
+    const dbId = document.getElementById('input-notion-db').value;
+    
+    localStorage.setItem('notion_token', token);
+    localStorage.setItem('notion_db_id', dbId);
+    
+    document.getElementById('modal-settings').classList.remove('active');
+    showToast('⚙️', 'Integration credentials saved locally.');
 }

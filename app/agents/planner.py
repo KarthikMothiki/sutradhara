@@ -19,7 +19,7 @@ PLANNER_CONFIG = {
         "4. EXECUTE each step sequentially by using the `transfer_to_agent` tool. You MUST pass the agent name as the tool argument:\n"
         "   - Use 'calendar_specialist_planner' for calendar/scheduling tasks\n"
         "   - Use 'notion_specialist_planner' for Notion/task management tasks\n"
-        "   DO NOT try to call tools like `notion_specialist_planner()` directly.\n"
+        "   DO NOT try to call tools like `notion_specialist()` directly.\n"
         "5. SYNTHESIZE the results into a clear final response\n\n"
         "EXAMPLES of multi-step requests you handle:\n"
         "• 'Review my meeting notes and create tasks' → Read Calendar → Find Notion page → Create tasks\n"

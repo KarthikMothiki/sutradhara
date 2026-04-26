@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sūtradhāra — AI Productivity OS</title>
-    <meta name="description" content="AI Chief of Staff for knowledge workers — context-aware, stateful, and it asks before it acts.">
+    <title>Sūtradhāra — AI Chief of Staff</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=3.0">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 </head>
 <body>
@@ -18,40 +16,64 @@
         <aside class="col col-command" id="col-command">
             <header class="col-header">
                 <div class="logo">
-                    <img src="logo.png" alt="S" class="logo-icon">
+                    <img src="logo.png" alt="S" class="logo-icon" id="logo-reset">
                     <h1>Sūtradhāra</h1>
                 </div>
                 <div class="header-actions">
-                    <button id="btn-demo" class="btn-ghost" title="Demo Mode">🎬</button>
+                    <button id="btn-theme" class="btn-ghost" title="Toggle Dark Mode">🌓</button>
+                    <button id="btn-demo" class="btn-ghost" title="Seed Demo Data">🎬</button>
+                    <button id="btn-loom" class="btn-ghost premium" title="Run The Loom (90s Demo)">✨</button>
                     <button id="btn-settings" class="btn-ghost" title="Settings">⚙️</button>
                 </div>
             </header>
 
-            <div class="chat-container">
+            <!-- Proactive Insights Panel -->
+            <div class="insights-panel" id="insights-panel">
+                <h3>Proactive Insights</h3>
+                <div id="alerts-list" class="alerts-list">
+                    <div class="alert-empty">All systems optimal.</div>
+                </div>
+            </div>
+
+            <!-- Mode Switcher -->
+            <div class="mode-tabs">
+                <button id="tab-chat" class="tab-btn active">Command</button>
+                <button id="tab-history" class="tab-btn">Archive</button>
+            </div>
+
+            <!-- Command View -->
+            <div class="chat-container active" id="chat-container">
                 <div class="chat-messages" id="chat-messages">
-                    <!-- Messages will be injected here -->
                     <div class="message message-system">
                         <div class="message-content">
-                            <p><strong>Sūtradhāra at your service.</strong></p>
-                            <p>How can I help hold the strings of your workday today?</p>
+                            <p><strong>Sūtradhāra Online.</strong></p>
+                            <p>How shall I orchestrate your workday today?</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="chat-input-area">
                     <div class="suggestion-tray">
-                        <button class="chip" data-query="Run conflict detection for the next 7 days">⚠️ Conflict check</button>
-                        <button class="chip" data-query="Find a 2-hour free slot tomorrow">📅 Book Deep Work</button>
+                        <button id="btn-briefing" class="chip-premium">✨ Generate Strategy</button>
+                        <button class="chip" data-query="Check my schedule for conflicts">⚠️ Conflicts</button>
                     </div>
                     <div class="input-wrapper">
-                        <textarea id="chat-input" placeholder="Give a command..." rows="1"></textarea>
-                        <button id="btn-voice" class="btn-voice" title="Voice Command">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                        </button>
+                        <textarea id="chat-input" placeholder="Enter command..." rows="1"></textarea>
                         <button id="btn-send" class="btn-send" title="Send (Enter)">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Archive (History) View -->
+            <div class="history-container" id="history-container">
+                <div class="history-header">
+                    <h2>Session Archive</h2>
+                    <p class="text-muted">Review past workflows</p>
+                </div>
+                <div class="history-list" id="history-list">
+                    <div class="text-muted" style="text-align:center; padding:20px;">Fetching history...</div>
                 </div>
             </div>
         </aside>
@@ -59,26 +81,23 @@
         <!-- ─── COLUMN 2: Live Canvas (Center) ─── -->
         <main class="col col-canvas" id="col-canvas">
             <header class="col-header sticky-header">
-                <h2>Live Canvas <span class="badge">Action Theater</span></h2>
+                <h2>THE THEATER <span class="badge">LIVE EXECUTION</span> <span class="badge-count" id="pending-count" style="display:none">0</span></h2>
                 <div class="status-indicator">
                     <span class="status-dot"></span>
-                    <span class="status-text">Ready</span>
+                    <span class="status-text" id="status-text">Ready</span>
                 </div>
             </header>
 
             <div class="canvas-content" id="canvas-content">
-                <!-- BriefingCard (pinned) -->
                 <div id="briefing-anchor"></div>
-                
-                <!-- Action Theater Cards will be injected here -->
                 <div class="canvas-empty">
                     <div class="empty-illustration">🎭</div>
-                    <h3>Your Action Theater</h3>
-                    <p>Agent outputs, calendar cards, and draft approvals will appear here as they happen.</p>
+                    <h3>Theater Empty</h3>
+                    <p>Agent outputs and approvals will manifest here.</p>
                 </div>
             </div>
 
-            <!-- Impact Panel (Sticky Footer) -->
+            <!-- Impact Panel -->
             <footer class="impact-panel" id="impact-panel">
                 <div class="impact-stat">
                     <span class="stat-value" id="stat-conflicts">0</span>
@@ -100,27 +119,23 @@
         <!-- ─── COLUMN 3: The Loom (Right) ─── -->
         <aside class="col col-loom" id="col-loom">
             <header class="col-header">
-                <h2>The Loom <span class="badge">Agent Cortex</span></h2>
-                <button id="btn-share" class="btn-ghost" title="Share Session Replay">🔗</button>
+                <h2>THE LOOM <span class="badge">AGENT CORTEX</span></h2>
             </header>
 
             <div class="loom-content">
-                <!-- Mermaid Workflow -->
-                <div class="workflow-section">
-                    <div id="workflow-container" class="mermaid-container">
-                        <!-- Mermaid diagram injected here -->
+                <div class="pipeline-section">
+                    <div id="pipeline-container" class="agent-pipeline">
+                        <div class="pipeline-node manager">
+                            <div class="node-icon">👔</div>
+                            <div class="node-info">
+                                <span class="name">Manager</span>
+                                <span class="task">Awaiting command...</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Filtered Trace Logs -->
                 <div class="trace-section">
-                    <div class="trace-header">
-                        <h3>Process Logs</h3>
-                        <span class="text-muted" id="filter-status">All Agents</span>
-                    </div>
-                    <div class="trace-logs" id="trace-timeline">
-                        <!-- Log entries injected here -->
-                    </div>
+                    <div class="trace-logs" id="trace-timeline"></div>
                 </div>
             </div>
         </aside>
@@ -129,6 +144,30 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="app.js"></script>
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal">
+        <div class="modal-content">
+            <header>
+                <h3>Integrations</h3>
+                <button class="btn-close" id="btn-close-settings">&times;</button>
+            </header>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Notion Integration Token</label>
+                    <input type="password" id="input-notion-token" placeholder="secret_...">
+                </div>
+                <div class="input-group">
+                    <label>Notion Database ID</label>
+                    <input type="text" id="input-notion-db" placeholder="32 chars hex...">
+                </div>
+                <p class="text-muted small">These are stored locally in your browser for the demo.</p>
+            </div>
+            <footer>
+                <button id="btn-save-settings" class="btn-primary">Save & Connect</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="app.js?v=3.0"></script>
 </body>
 </html>
