@@ -20,7 +20,9 @@ Manager (Root Orchestrator)
 - 🔍 **Live Agent Trace UI** — Watch agents think in real-time
 - 📊 **Workflow Visualization** — Auto-generated Mermaid diagrams
 - ↩️ **Undo/Rollback** — Reverse any action the agents took
-- ⏰ **Proactive Features** — Daily briefings, meeting prep, conflict detection
+- 🎙️ **Sensory Orchestration** — Integrated Voice (STT) and Vision (Image/PDF) analysis
+- ⚡ **High-Performance Streaming** — Real-time token broadcasting via WebSockets
+- ↩️ **Deterministic Reliability** — Production-grade test suite for orchestration
 - 🚀 **Cloud Run Ready** — Docker-based deployment
 
 ## 🚀 Quick Start
@@ -94,13 +96,14 @@ docker compose up --build
 | Layer           | Technology                           |
 | --------------- | ------------------------------------ |
 | Agent Framework | Google ADK                           |
-| LLM             | Gemini 2.5 Pro (with fallback chain) |
-| API Server      | FastAPI                              |
-| Database        | SQLite + SQLAlchemy                  |
+| LLM             | Gemini 2.0 Flash / Pro (Vision)      |
+| Sensory Input   | Google Cloud STT V2, GCS             |
+| API Server      | FastAPI + WebSockets                 |
+| Database        | SQLite + SQLAlchemy (Async)          |
 | External APIs   | Google Calendar, Notion              |
 | Protocol        | Model Context Protocol (MCP)         |
-| Scheduling      | APScheduler                          |
 | Frontend        | Vanilla HTML/CSS/JS + Mermaid.js     |
+| Reliability     | Pytest + Asyncio Mocking             |
 | Deployment      | Docker + Cloud Run                   |
 
 ## 📄 License

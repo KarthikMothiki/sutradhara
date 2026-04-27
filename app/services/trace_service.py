@@ -204,6 +204,19 @@ class TraceService:
             timestamp=datetime.now(timezone.utc),
         ))
 
+    async def emit_response_chunk(
+        self,
+        conversation_id: str,
+        chunk: str,
+    ) -> None:
+        """Shorthand: emit a response_chunk event for real-time text streaming."""
+        await self.emit(TraceEvent(
+            conversation_id=conversation_id,
+            event_type="response_chunk",
+            data={"text": chunk},
+            timestamp=datetime.now(timezone.utc),
+        ))
+
 
 
 # ── Singleton ───────────────────────────────────────────────────

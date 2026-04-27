@@ -19,6 +19,7 @@ class QueryRequest(BaseModel):
     context: dict[str, Any] | None = Field(
         default=None, description="Optional context (e.g., preferred timezone)"
     )
+    images: list[str] | None = Field(default=None, description="Optional list of Base64 encoded images")
 
 
 class FeedbackRequest(BaseModel):

@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     google_api_key: str = ""
     google_cloud_project: str = ""
     google_cloud_location: str = "us-central1"
+    google_cloud_bucket: str = ""
 
     # ── Demo Mode ────────────────────────────────────────────────
     # When True, all MCP calls return seed data instead of hitting live APIs

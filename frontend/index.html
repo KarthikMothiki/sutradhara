@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sūtradhāra — AI Chief of Staff</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=4.0">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 </head>
+
 <body>
     <div class="sutradhara-os">
         <!-- ─── COLUMN 1: Command Center (Left) ─── -->
@@ -58,9 +62,16 @@
                         <button class="chip" data-query="Check my schedule for conflicts">⚠️ Conflicts</button>
                     </div>
                     <div class="input-wrapper">
+                        <button id="btn-voice" class="btn-input-alt" title="Voice Command">🎙️</button>
+                        <button id="btn-upload" class="btn-input-alt" title="Upload Image/Document">📎</button>
+                        <input type="file" id="file-upload" accept="image/*" style="display:none">
                         <textarea id="chat-input" placeholder="Enter command..." rows="1"></textarea>
                         <button id="btn-send" class="btn-send" title="Send (Enter)">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <line x1="22" y1="2" x2="11" y2="13" />
+                                <polyline points="22 2 15 22 11 13 2 9 22 2" />
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -81,7 +92,8 @@
         <!-- ─── COLUMN 2: Live Canvas (Center) ─── -->
         <main class="col col-canvas" id="col-canvas">
             <header class="col-header sticky-header">
-                <h2>THE THEATER <span class="badge">LIVE EXECUTION</span> <span class="badge-count" id="pending-count" style="display:none">0</span></h2>
+                <h2>THE THEATER <span class="badge">LIVE EXECUTION</span> <span class="badge-count" id="pending-count"
+                        style="display:none">0</span></h2>
                 <div class="status-indicator">
                     <span class="status-dot"></span>
                     <span class="status-text" id="status-text">Ready</span>
@@ -170,4 +182,5 @@
 
     <script src="app.js?v=4.0"></script>
 </body>
+
 </html>

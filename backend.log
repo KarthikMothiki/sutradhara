@@ -286,3 +286,867 @@ INFO:     127.0.0.1:51406 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
 INFO:     127.0.0.1:57264 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
 INFO:     127.0.0.1:40892 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
 INFO:     127.0.0.1:33428 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54722 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53056 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+22:33:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 22:48:10 IST)" (scheduled at 2026-04-26 22:33:10.940008+05:30)
+22:33:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+22:33:10 │ INFO     │ app.agents.crew │ Created new ADK session d77e4dda…
+22:33:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+22:33:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+22:33:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+22:33:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+22:33:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+22:33:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+22:33:32 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+22:33:32 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+22:33:32 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    raise inner_e
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    conflict_pairs = _detect_conflicts(events)
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    sorted_events = sorted(events, key=lambda e: e.get("start", {}).get("dateTime", e.get("start", {}).get("date", "")))
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    sorted_events = sorted(events, key=lambda e: e.get("start", {}).get("dateTime", e.get("start", {}).get("date", "")))
+AttributeError: 'str' object has no attribute 'get'
+22:33:32 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: failed
+22:33:32 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 22:48:10 IST)" executed successfully
+INFO:     127.0.0.1:37416 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50010 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59612 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34994 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35716 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60180 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52090 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56756 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39852 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36876 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47154 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59216 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45620 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45792 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41140 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+22:48:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 23:03:10 IST)" (scheduled at 2026-04-26 22:48:10.940008+05:30)
+22:48:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+22:48:10 │ INFO     │ app.agents.crew │ Created new ADK session 86961a13…
+22:48:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+22:48:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+22:48:11 │ INFO     │ apscheduler.executors.default │ Running job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-26 23:18:10 IST)" (scheduled at 2026-04-26 22:48:10.940292+05:30)
+22:48:11 │ INFO     │ app.services.scheduler_service │ ⚠️ Running Conflict Detection job…
+22:48:11 │ INFO     │ app.agents.crew │ Created new ADK session 0966b0e0…
+22:48:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+22:48:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+22:48:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+22:48:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+22:48:16 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+22:48:16 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+22:48:20 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+22:48:21 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+22:48:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+22:48:25 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: Tool 'calendar_specialist_anticipator.list_events' not found.
+Available tools: transfer_to_agent
+
+Possible causes:
+  1. LLM hallucinated the function name - review agent instruction clarity
+  2. Tool not registered - verify agent.tools list
+  3. Name mismatch - check for typos
+
+Suggested fixes:
+  - Review agent instruction to ensure tool usage is clear
+  - Verify tool is included in agent.tools list
+  - Check for typos in function name
+22:48:25 │ ERROR    │ app.agents.crew │ Agent execution error: Tool 'calendar_specialist_anticipator.list_events' not found.
+Available tools: transfer_to_agent
+
+Possible causes:
+  1. LLM hallucinated the function name - review agent instruction clarity
+  2. Tool not registered - verify agent.tools list
+  3. Name mismatch - check for typos
+
+Suggested fixes:
+  - Review agent instruction to ensure tool usage is clear
+  - Verify tool is included in agent.tools list
+  - Check for typos in function name
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 831, in run_agent_query
+    if session_id:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/runners.py", line 632, in run_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/runners.py", line 617, in _run_with_trace
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/runners.py", line 853, in _exec_with_plugin
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/runners.py", line 606, in execute
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/agents/base_agent.py", line 297, in run_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/agents/llm_agent.py", line 479, in _run_async_impl
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 754, in run_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 841, in _run_one_step_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 934, in _postprocess_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1087, in _postprocess_handle_function_calls_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/agents/base_agent.py", line 297, in run_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/agents/llm_agent.py", line 479, in _run_async_impl
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 754, in run_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 841, in _run_one_step_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 934, in _postprocess_async
+    async for event in agen:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1052, in _postprocess_handle_function_calls_async
+    if function_response_event := await functions.handle_function_calls_async(
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/functions.py", line 358, in handle_function_calls_async
+    return await handle_function_call_list_async(
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/functions.py", line 404, in handle_function_call_list_async
+    function_response_events = await asyncio.gather(*tasks)
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/functions.py", line 498, in _execute_single_function_call_async
+    raise tool_error
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/functions.py", line 484, in _execute_single_function_call_async
+    tool = _get_tool(function_call, tools_dict)
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/.venv/lib/python3.10/site-packages/google/adk/flows/llm_flows/functions.py", line 1008, in _get_tool
+    raise ValueError(error_msg)
+ValueError: Tool 'calendar_specialist_anticipator.list_events' not found.
+Available tools: transfer_to_agent
+
+Possible causes:
+  1. LLM hallucinated the function name - review agent instruction clarity
+  2. Tool not registered - verify agent.tools list
+  3. Name mismatch - check for typos
+
+Suggested fixes:
+  - Review agent instruction to ensure tool usage is clear
+  - Verify tool is included in agent.tools list
+  - Check for typos in function name
+22:48:25 │ INFO     │ app.services.scheduler_service │ Conflict detection completed: failed
+22:48:25 │ INFO     │ apscheduler.executors.default │ Job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-26 23:18:10 IST)" executed successfully
+22:48:28 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+22:48:28 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+22:48:28 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 23:03:10 IST)" executed successfully
+INFO:     127.0.0.1:60416 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50278 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44246 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57200 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37614 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53694 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51604 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54560 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39810 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54946 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59078 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56132 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33874 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33954 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45738 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+23:03:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 23:18:10 IST)" (scheduled at 2026-04-26 23:03:10.940008+05:30)
+23:03:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+23:03:10 │ INFO     │ app.agents.crew │ Created new ADK session a12babaf…
+23:03:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+23:03:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:03:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:03:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:03:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:03:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:03:31 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:03:31 │ INFO     │ app.agents.tools.thought_tools │ 💭 Thought: The user wants to find upcoming meetings in the next 15-30 minutes. I will use the `list_events` tool to check for events in this time range.
+
+Today's date is Sunday, April 26, 2026, and the current time is 09:33 PM in the Asia/Kolkata timezone.
+
+Therefore, the start time for the search will be `2026-04-26T21:33:00+05:30` and the end time will be `2026-04-26T22:03:00+05:30`.
+23:03:31 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+23:03:31 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+23:03:31 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: failed
+23:03:31 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 23:18:10 IST)" executed successfully
+INFO:     127.0.0.1:55704 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53524 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33494 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39482 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40506 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48380 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49814 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33488 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56292 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37594 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42912 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55828 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51772 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40782 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53846 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+23:18:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 23:33:10 IST)" (scheduled at 2026-04-26 23:18:10.940008+05:30)
+23:18:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+23:18:10 │ INFO     │ app.agents.crew │ Created new ADK session ae2ed45c…
+23:18:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+23:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:11 │ INFO     │ apscheduler.executors.default │ Running job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-26 23:48:10 IST)" (scheduled at 2026-04-26 23:18:10.940292+05:30)
+23:18:11 │ INFO     │ app.services.scheduler_service │ ⚠️ Running Conflict Detection job…
+23:18:11 │ INFO     │ app.agents.crew │ Created new ADK session 10fc0eb2…
+23:18:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+23:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:11 │ INFO     │ apscheduler.executors.default │ Running job "Smart Rescheduling Check (trigger: interval[1:00:00], next run at: 2026-04-27 00:18:10 IST)" (scheduled at 2026-04-26 23:18:10.940362+05:30)
+23:18:11 │ INFO     │ app.services.scheduler_service │ 🧠 Running Smart Rescheduling check…
+23:18:11 │ INFO     │ app.agents.crew │ Created new ADK session 3a4447d1…
+23:18:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+23:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:17 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:17 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:18 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:18 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:26 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:26 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:26 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:18:27 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:27 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+23:18:27 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+23:18:27 │ INFO     │ app.services.scheduler_service │ Conflict detection completed: failed
+23:18:27 │ INFO     │ apscheduler.executors.default │ Job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-26 23:48:10 IST)" executed successfully
+23:18:30 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:30 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+23:18:30 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+23:18:30 │ INFO     │ app.services.scheduler_service │ Smart rescheduling check completed: failed
+23:18:30 │ INFO     │ apscheduler.executors.default │ Job "Smart Rescheduling Check (trigger: interval[1:00:00], next run at: 2026-04-27 00:18:10 IST)" executed successfully
+23:18:33 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:18:33 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+23:18:33 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 23:33:10 IST)" executed successfully
+INFO:     127.0.0.1:41204 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57570 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52470 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32862 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49838 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43558 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59312 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58532 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42338 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43320 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51268 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50932 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54632 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45002 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55856 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+23:33:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 23:48:10 IST)" (scheduled at 2026-04-26 23:33:10.940008+05:30)
+23:33:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+23:33:10 │ INFO     │ app.agents.crew │ Created new ADK session 1a153ff0…
+23:33:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+23:33:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:33:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:33:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+23:33:30 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:33:30 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+INFO:     127.0.0.1:54486 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+23:33:36 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+23:33:36 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+23:33:36 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-26 23:48:10 IST)" executed successfully
+INFO:     127.0.0.1:33942 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36356 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43738 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50278 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60984 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42358 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58054 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55506 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46326 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33914 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49500 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46772 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53574 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42000 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+00:33:02 │ WARNING  │ apscheduler.executors.default │ Run time of job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 00:33:10 IST)" was missed by 0:14:51.560694
+00:33:02 │ WARNING  │ apscheduler.executors.default │ Run time of job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 00:48:10 IST)" was missed by 0:14:51.560549
+00:33:02 │ WARNING  │ apscheduler.executors.default │ Run time of job "Smart Rescheduling Check (trigger: interval[1:00:00], next run at: 2026-04-27 01:18:10 IST)" was missed by 0:14:51.560530
+00:33:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 00:48:10 IST)" (scheduled at 2026-04-27 00:33:10.940008+05:30)
+00:33:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+00:33:10 │ INFO     │ app.agents.crew │ Created new ADK session 840d4f30…
+00:33:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+00:33:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+00:33:13 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:33:13 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+00:33:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:33:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+INFO:     127.0.0.1:55460 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+00:33:28 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:33:28 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+00:33:28 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+00:33:28 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: failed
+00:33:28 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 00:48:10 IST)" executed successfully
+INFO:     127.0.0.1:34684 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46034 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34166 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47132 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49876 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53860 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49684 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48222 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39958 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38778 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56736 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37144 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38126 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50932 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+00:48:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 01:03:10 IST)" (scheduled at 2026-04-27 00:48:10.940008+05:30)
+00:48:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+00:48:10 │ INFO     │ app.agents.crew │ Created new ADK session a11132af…
+00:48:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+00:48:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+00:48:11 │ INFO     │ apscheduler.executors.default │ Running job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 01:18:10 IST)" (scheduled at 2026-04-27 00:48:10.940292+05:30)
+00:48:11 │ INFO     │ app.services.scheduler_service │ ⚠️ Running Conflict Detection job…
+00:48:11 │ INFO     │ app.agents.crew │ Created new ADK session e88b07dc…
+00:48:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+00:48:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+00:48:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:48:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+00:48:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:48:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+00:48:19 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:48:19 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+00:48:20 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:48:20 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+00:48:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:48:25 │ INFO     │ app.services.scheduler_service │ Conflict detection completed: completed
+00:48:25 │ INFO     │ apscheduler.executors.default │ Job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 01:18:10 IST)" executed successfully
+INFO:     127.0.0.1:59022 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+00:48:28 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+00:48:28 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+00:48:28 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 01:03:10 IST)" executed successfully
+INFO:     127.0.0.1:57348 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59988 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42712 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52546 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41756 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50728 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49826 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37606 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43878 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55370 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42642 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38012 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33090 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42730 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+01:03:11 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 01:18:10 IST)" (scheduled at 2026-04-27 01:03:10.940008+05:30)
+01:03:11 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+01:03:11 │ INFO     │ app.agents.crew │ Created new ADK session fe91369c…
+01:03:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+01:03:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:03:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:03:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:03:20 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:03:20 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+INFO:     127.0.0.1:43582 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+01:03:29 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:03:29 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+01:03:29 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 01:18:10 IST)" executed successfully
+INFO:     127.0.0.1:47948 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36510 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41006 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44704 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47536 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35084 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40304 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41936 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42476 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41036 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37892 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33428 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49258 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52878 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+01:18:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 01:33:10 IST)" (scheduled at 2026-04-27 01:18:10.940008+05:30)
+01:18:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+01:18:10 │ INFO     │ app.agents.crew │ Created new ADK session 6d9064a9…
+01:18:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+01:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:11 │ INFO     │ apscheduler.executors.default │ Running job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 01:48:10 IST)" (scheduled at 2026-04-27 01:18:10.940292+05:30)
+01:18:11 │ INFO     │ app.services.scheduler_service │ ⚠️ Running Conflict Detection job…
+01:18:11 │ INFO     │ app.agents.crew │ Created new ADK session a5ee3513…
+01:18:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+01:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:11 │ INFO     │ apscheduler.executors.default │ Running job "Smart Rescheduling Check (trigger: interval[1:00:00], next run at: 2026-04-27 02:18:10 IST)" (scheduled at 2026-04-27 01:18:10.940362+05:30)
+01:18:11 │ INFO     │ app.services.scheduler_service │ 🧠 Running Smart Rescheduling check…
+01:18:11 │ INFO     │ app.agents.crew │ Created new ADK session 582acd68…
+01:18:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+01:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:11 │ INFO     │ apscheduler.executors.default │ Running job "Proactive System Audit (trigger: interval[4:00:00], next run at: 2026-04-27 05:18:10 IST)" (scheduled at 2026-04-27 01:18:10.940708+05:30)
+01:18:11 │ INFO     │ app.services.anticipator_service │ 🚀 Starting proactive system audit…
+01:18:11 │ INFO     │ app.agents.crew │ Created new ADK session system-a…
+01:18:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+01:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:19 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:19 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:21 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:21 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:21 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:21 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:25 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+01:18:25 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+01:18:25 │ INFO     │ app.services.scheduler_service │ Smart rescheduling check completed: failed
+01:18:25 │ INFO     │ apscheduler.executors.default │ Job "Smart Rescheduling Check (trigger: interval[1:00:00], next run at: 2026-04-27 02:18:10 IST)" executed successfully
+INFO:     127.0.0.1:36386 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+01:18:27 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:27 │ INFO     │ app.agents.tools.thought_tools │ 💭 Thought: Okay, I need to check your calendar for the next seven days to identify any scheduling conflicts. I will fetch all the events scheduled from today, April 26, 2026, to May 3, 2026. Then, I will analyze the list of events to find any overlapping meetings, back-to-back events, and conflicts with your focus time blocks. Finally, I will report any issues I find and suggest resolutions.
+01:18:27 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+01:18:27 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+01:18:27 │ INFO     │ app.services.scheduler_service │ Conflict detection completed: failed
+01:18:27 │ INFO     │ apscheduler.executors.default │ Job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 01:48:10 IST)" executed successfully
+01:18:28 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:28 │ INFO     │ app.agents.tools.thought_tools │ 💭 Thought: The user wants to check for meetings in the next 15-30 minutes. I will use the `list_events` tool to check the calendar for the specified time range.
+
+Today's date is April 26, 2026, and the current time is 09:33 PM in Asia/Kolkata (UTC+05:30).
+
+- Start time: 09:33 PM + 15 minutes = 09:48 PM
+- End time: 09:33 PM + 30 minutes = 10:03 PM
+
+I will call `list_events` with the following parameters:
+- `start_date`: '2026-04-26T21:48:00+05:30'
+- `end_date`: '2026-04-26T22:03:00+05:30'
+01:18:28 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+01:18:28 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+01:18:28 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: failed
+01:18:28 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 01:33:10 IST)" executed successfully
+01:18:29 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:29 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:18:33 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:18:33 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+01:18:33 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+01:18:33 │ INFO     │ app.services.anticipator_service │ ✅ Proactive audit complete. No issues found.
+01:18:33 │ INFO     │ apscheduler.executors.default │ Job "Proactive System Audit (trigger: interval[4:00:00], next run at: 2026-04-27 05:18:10 IST)" executed successfully
+INFO:     127.0.0.1:39502 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40114 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56184 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59398 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54472 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47724 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55268 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35632 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32952 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53572 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52212 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44406 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59966 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43504 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+01:33:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 01:48:10 IST)" (scheduled at 2026-04-27 01:33:10.940008+05:30)
+01:33:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+01:33:10 │ INFO     │ app.agents.crew │ Created new ADK session fe4ebcac…
+01:33:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+01:33:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:33:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:33:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:33:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:33:25 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+INFO:     127.0.0.1:48542 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+01:33:31 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:33:31 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+01:33:31 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+01:33:31 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: failed
+01:33:31 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 01:48:10 IST)" executed successfully
+INFO:     127.0.0.1:54532 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46648 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60212 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44758 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33008 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44362 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51924 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49908 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41858 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60648 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53106 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44114 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47508 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36994 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+01:48:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 02:03:10 IST)" (scheduled at 2026-04-27 01:48:10.940008+05:30)
+01:48:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+01:48:10 │ INFO     │ app.agents.crew │ Created new ADK session d0c4e9ed…
+01:48:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+01:48:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:48:11 │ INFO     │ apscheduler.executors.default │ Running job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 02:18:10 IST)" (scheduled at 2026-04-27 01:48:10.940292+05:30)
+01:48:11 │ INFO     │ app.services.scheduler_service │ ⚠️ Running Conflict Detection job…
+01:48:11 │ INFO     │ app.agents.crew │ Created new ADK session 5bf8e7ee…
+01:48:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+01:48:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:48:13 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:48:13 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:48:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:48:16 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:48:20 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:48:20 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+01:48:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:48:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+INFO:     127.0.0.1:57718 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+01:48:31 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:48:31 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+01:48:31 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 02:03:10 IST)" executed successfully
+01:48:32 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+01:48:32 │ INFO     │ app.agents.tools.thought_tools │ 💭 Thought: The user wants me to analyze their calendar for the next 7 days to find any scheduling conflicts, such as overlapping events, back-to-back meetings, and meetings that conflict with focus time blocks.
+
+My plan is as follows:
+1.  **List Events**: Use the `list_events` tool to get all the events for the next 7 days (from today, April 26, 2026, to May 3, 2026).
+2.  **Analyze Events**:
+    *   I will programmatically check for any events that have overlapping start and end times.
+    *   I will identify any events where the end time of one event is the same as the start time of the next event.
+    *   I will look for events specifically titled "Focus Time" and then check if any other meetings are scheduled during those times.
+3.  **Report and Suggest**: I will report any conflicts I find back to the user and for each conflict, I will use the `find_free_slots` tool to suggest alternative times for rescheduling.
+
+I will start by listing the events for the next 7 days.
+01:48:32 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+01:48:32 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+01:48:32 │ INFO     │ app.services.scheduler_service │ Conflict detection completed: failed
+01:48:32 │ INFO     │ apscheduler.executors.default │ Job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 02:18:10 IST)" executed successfully
+INFO:     127.0.0.1:49156 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44336 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59328 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47098 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49600 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37430 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58012 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47290 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38038 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46526 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40582 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53516 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51642 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38182 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+02:03:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 02:18:10 IST)" (scheduled at 2026-04-27 02:03:10.940008+05:30)
+02:03:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+02:03:10 │ INFO     │ app.agents.crew │ Created new ADK session 58835807…
+02:03:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+02:03:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:03:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:03:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:03:22 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:03:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+INFO:     127.0.0.1:44222 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+02:03:32 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:03:32 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+02:03:32 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+02:03:32 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: failed
+02:03:32 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 02:18:10 IST)" executed successfully
+INFO:     127.0.0.1:33932 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45204 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35816 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57144 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53784 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56636 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32892 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35622 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60846 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57786 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41622 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36278 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44576 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42572 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+02:18:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 02:33:10 IST)" (scheduled at 2026-04-27 02:18:10.940008+05:30)
+02:18:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+02:18:10 │ INFO     │ app.agents.crew │ Created new ADK session ffc6c28f…
+02:18:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+02:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:18:11 │ INFO     │ apscheduler.executors.default │ Running job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 02:48:10 IST)" (scheduled at 2026-04-27 02:18:10.940292+05:30)
+02:18:11 │ INFO     │ app.services.scheduler_service │ ⚠️ Running Conflict Detection job…
+02:18:11 │ INFO     │ app.agents.crew │ Created new ADK session be0f16a9…
+02:18:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+02:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:18:11 │ INFO     │ apscheduler.executors.default │ Running job "Smart Rescheduling Check (trigger: interval[1:00:00], next run at: 2026-04-27 03:18:10 IST)" (scheduled at 2026-04-27 02:18:10.940362+05:30)
+02:18:11 │ INFO     │ app.services.scheduler_service │ 🧠 Running Smart Rescheduling check…
+02:18:11 │ INFO     │ app.agents.crew │ Created new ADK session 32a746f3…
+02:18:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+02:18:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:18:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:18:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:16 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:18:24 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:24 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:18:24 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:24 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+INFO:     127.0.0.1:44166 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+02:18:28 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:28 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+02:18:28 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+02:18:28 │ INFO     │ app.services.scheduler_service │ Smart rescheduling check completed: failed
+02:18:28 │ INFO     │ apscheduler.executors.default │ Job "Smart Rescheduling Check (trigger: interval[1:00:00], next run at: 2026-04-27 03:18:10 IST)" executed successfully
+02:18:31 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:31 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+02:18:31 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 02:33:10 IST)" executed successfully
+02:18:39 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:39 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:18:43 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:18:43 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+02:18:43 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+02:18:43 │ INFO     │ app.services.scheduler_service │ Conflict detection completed: failed
+02:18:43 │ INFO     │ apscheduler.executors.default │ Job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 02:48:10 IST)" executed successfully
+INFO:     127.0.0.1:55272 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37896 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52430 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43642 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60212 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39574 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58538 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52294 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54414 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42234 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44224 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38850 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39512 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43194 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+02:33:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 02:48:10 IST)" (scheduled at 2026-04-27 02:33:10.940008+05:30)
+02:33:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+02:33:10 │ INFO     │ app.agents.crew │ Created new ADK session c349e0c4…
+02:33:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+02:33:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:33:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:33:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:33:24 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:33:24 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+INFO:     127.0.0.1:48342 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+02:33:31 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:33:31 │ INFO     │ app.agents.tools.thought_tools │ 💭 Thought: The user wants me to check for meetings in the next 15-30 minutes. First, I need to determine the exact time window to check. The current time is 09:33 PM on April 26, 2026. Therefore, the next 15-30 minutes corresponds to a start time between 09:48 PM and 10:03 PM on April 26, 2026. I will call the `list_events` tool for today's date and then filter the results to identify the relevant meetings.
+02:33:31 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+02:33:31 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    # Call it synchronously to get the Mermaid string
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    except Exception:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+02:33:31 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: failed
+02:33:31 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 02:48:10 IST)" executed successfully
+INFO:     127.0.0.1:46204 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60652 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34082 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60854 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46178 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46766 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55114 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37394 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33130 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40898 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57508 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58582 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39702 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41382 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+02:48:10 │ INFO     │ apscheduler.executors.default │ Running job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 03:03:10 IST)" (scheduled at 2026-04-27 02:48:10.940008+05:30)
+02:48:10 │ INFO     │ app.services.scheduler_service │ 📋 Running Meeting Prep job…
+02:48:10 │ INFO     │ app.agents.crew │ Created new ADK session 9c3b4d27…
+02:48:10 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+02:48:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:48:11 │ INFO     │ apscheduler.executors.default │ Running job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 03:18:10 IST)" (scheduled at 2026-04-27 02:48:10.940292+05:30)
+02:48:11 │ INFO     │ app.services.scheduler_service │ ⚠️ Running Conflict Detection job…
+02:48:11 │ INFO     │ app.agents.crew │ Created new ADK session ee2a55c4…
+02:48:11 │ WARNING  │ app.agents.crew │ Failed to inject user memory: <ContextVar name='db' at 0x7cbb508fb290>
+02:48:11 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:48:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:48:14 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:48:15 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:48:16 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:48:19 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:48:19 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:48:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:48:23 │ INFO     │ google_adk.google.adk.models.google_llm │ Sending out request, model: gemini-2.5-pro, backend: GoogleLLMVariant.GEMINI_API, stream: False
+02:48:24 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:48:24 │ INFO     │ app.agents.tools.thought_tools │ 💭 Thought: The user wants me to audit their calendar for the next seven days to find scheduling conflicts.
+
+My plan is to:
+1.  Fetch all events for the next seven days (from April 26, 2026, to May 3, 2026).
+2.  Analyze the list of events to identify:
+    *   Overlapping or double-booked events.
+    *   Back-to-back meetings without any breaks.
+    *   Meetings that are scheduled during designated "focus time" blocks.
+3.  Report any identified conflicts back to the user with actionable suggestions for resolution.
+
+I will start by listing the events.
+02:48:24 │ ERROR    │ app.agents.crew │ Error in runner.run_async loop: 'str' object has no attribute 'get'
+02:48:24 │ ERROR    │ app.agents.crew │ Agent execution error: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 968, in run_agent_query
+    try:
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 932, in run_agent_query
+    tool_name = part.function_call.name
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in _detect_conflicts
+    for prop_val in item.get("properties", {}).values():
+  File "/home/ogmen/gen_ai_apac_challenge_hackathon/app/agents/crew.py", line 683, in <lambda>
+    for prop_val in item.get("properties", {}).values():
+AttributeError: 'str' object has no attribute 'get'
+02:48:24 │ INFO     │ app.services.scheduler_service │ Conflict detection completed: failed
+02:48:24 │ INFO     │ apscheduler.executors.default │ Job "Conflict Detection (trigger: interval[0:30:00], next run at: 2026-04-27 03:18:10 IST)" executed successfully
+INFO:     127.0.0.1:32940 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+02:48:32 │ INFO     │ google_adk.google.adk.models.google_llm │ Response received from the model.
+02:48:32 │ INFO     │ app.services.scheduler_service │ Meeting prep completed: completed
+02:48:32 │ INFO     │ apscheduler.executors.default │ Job "Meeting Prep (trigger: interval[0:15:00], next run at: 2026-04-27 03:03:10 IST)" executed successfully
+INFO:     127.0.0.1:47006 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37318 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58262 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50042 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35556 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33162 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49332 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35444 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44876 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51788 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43860 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42672 - "GET /api/v1/intelligence/alerts HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+03:01:04 │ INFO     │ app.main │ Shutting down…
+03:01:04 │ INFO     │ app.services.scheduler_service │ Scheduler shut down.
+03:01:04 │ INFO     │ apscheduler.scheduler │ Scheduler has been shut down
+03:01:04 │ INFO     │ app.main │ 👋 Goodbye!
+INFO:     Application shutdown complete.
+INFO:     Finished server process [43513]

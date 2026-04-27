@@ -479,38 +479,32 @@ def _get_notion_function_tools() -> list:
             "Content-Type": "application/json",
         }
 
-    def query_notion_database(
+    async def query_notion_database(
         database_id: str = "",
         filter_property: str = "",
         filter_value: str = "",
         page_size: int = 20,
     ) -> dict:
-        """Query a Notion database with optional filters.
-
-        Args:
-            database_id: Notion database ID (uses default if empty)
-            filter_property: Property name to filter on (optional)
-            filter_value: Value to filter for (optional)
-            page_size: Number of results
-
-        Returns:
-            Dict with matching pages.
-        """
+        """Query a Notion database with optional filters."""
         try:
+            from app.config import get_settings
+            settings = get_settings()
+
             # ── DEMO MODE BYPASS ────────────────────────────────────
-            if get_settings().demo_mode:
+            if settings.demo_mode:
                 from app.services.demo_service import get_demo_notion
                 tasks = get_demo_notion()
-                # Filter by priority/status if requested
+                # Filter by keyword across multiple fields if requested
                 if filter_value:
-                    tasks = [t for t in tasks if filter_value.lower() in t.get('priority','').lower()
-                             or filter_value.lower() in t.get('status','').lower()]
+                    fv = filter_value.lower()
+                    tasks = [t for t in tasks if 
+                             fv in t.get('priority','').lower() or 
+                             fv in t.get('status','').lower() or
+                             fv in t.get('title','').lower() or
+                             fv in t.get('due','').lower()]
                 return {"pages": tasks, "count": len(tasks), "source": "demo"}
             # ── END DEMO MODE BYPASS ───────────────────────────────
             import httpx
-            from app.config import get_settings
-
-            settings = get_settings()
             if not settings.notion_token:
                 return {"error": "Notion not configured. Set NOTION_TOKEN in .env."}
 
@@ -526,14 +520,16 @@ def _get_notion_function_tools() -> list:
                     "status": {"equals": filter_value},
                 }
 
-            resp = httpx.post(
-                f"https://api.notion.com/v1/databases/{db_id}/query",
-                headers=_notion_headers(),
-                json=body,
-                timeout=15,
-            )
-            resp.raise_for_status()
-            result = resp.json()
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"https://api.notion.com/v1/databases/{db_id}/query",
+                    headers=_notion_headers(),
+                    json=body,
+                    timeout=15,
+                )
+                if resp.is_error:
+                    return {"error": f"Notion API error {resp.status_code}: {resp.text}"}
+                result = resp.json()
 
             pages = []
             for page in result.get("results", []):
@@ -566,6 +562,9 @@ def _get_notion_function_tools() -> list:
 
             return {"pages": pages, "count": len(pages)}
         except Exception as e:
+            import traceback
+            error_msg = f"Notion API Error: {str(e)}\n{traceback.format_exc()}"
+            print(error_msg)
             return {"error": str(e)}
 
     async def create_notion_page(
@@ -630,17 +629,41 @@ def _get_notion_function_tools() -> list:
         except Exception as e:
             return {"error": str(e)}
 
-    def search_notion(query: str, page_size: int = 10) -> dict:
+    async def search_notion(query: str, page_size: int = 10) -> dict:
         """Search across the Notion workspace.
-
-        Args:
-            query: Search query text
-            page_size: Number of results
-
-        Returns:
-            Dict with search results.
+        ...
         """
         try:
+            # ── DEMO MODE BYPASS ────────────────────────────────────
+            if get_settings().demo_mode:
+                from app.services.trace_service import trace_service
+                conv_id = ctx_conversation_id.get()
+                await trace_service.emit_loom_event(conv_id, "notion_specialist", "THOUGHT", f"Searching Notion for '{query}'...")
+                
+                from app.services.demo_service import get_demo_notion
+                all_items = get_demo_notion()
+                query_lower = query.lower()
+                
+                matches = [
+                    item for item in all_items 
+                    if query_lower in item.get("title", "").lower() 
+                    or query_lower in item.get("content", "").lower()
+                ]
+                
+                items = []
+                for m in matches[:page_size]:
+                    items.append({
+                        "id": m["id"],
+                        "type": "page",
+                        "title": m["title"],
+                        "url": f"https://notion.so/{m['id']}",
+                        "content_snippet": m.get("content", "")[:200] + "..."
+                    })
+                
+                await trace_service.emit_loom_event(conv_id, "notion_specialist", "SEARCH", f"Found {len(items)} relevant documents.")
+                return {"results": items, "count": len(items), "source": "demo"}
+            # ── END DEMO MODE BYPASS ───────────────────────────────
+
             import httpx
 
             resp = httpx.post(
@@ -674,7 +697,46 @@ def _get_notion_function_tools() -> list:
         except Exception as e:
             return {"error": str(e)}
 
-    return [query_notion_database, create_notion_page, update_notion_page, search_notion]
+    async def read_notion_page(page_id: str) -> dict:
+        """Read the content of a Notion page.
+        
+        Args:
+            page_id: The ID of the page to read.
+        """
+        try:
+            # ── DEMO MODE BYPASS ────────────────────────────────────
+            if get_settings().demo_mode:
+                from app.services.trace_service import trace_service
+                conv_id = ctx_conversation_id.get()
+                
+                from app.services.demo_service import get_demo_notion
+                all_items = get_demo_notion()
+                page = next((item for item in all_items if item["id"] == page_id), None)
+                if page:
+                    await trace_service.emit_loom_event(conv_id, "notion_specialist", "READ", f"Reading content for '{page['title']}'...")
+                    return {
+                        "id": page["id"],
+                        "title": page["title"],
+                        "content": page.get("content", ""),
+                        "source": "demo"
+                    }
+                return {"error": "Page not found in demo data."}
+            # ── END DEMO MODE BYPASS ───────────────────────────────
+
+            import httpx
+            # In a real implementation, this would fetch blocks and combine them
+            # For simplicity, we just fetch the page properties here
+            resp = httpx.get(
+                f"https://api.notion.com/v1/pages/{page_id}",
+                headers=_notion_headers(),
+                timeout=10,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            return {"error": str(e)}
+
+    return [query_notion_database, create_notion_page, update_notion_page, search_notion, read_notion_page]
 
 def _detect_conflicts(events: list[dict]) -> list[dict]:
     """Analyze calendar events for overlapping time windows."""
@@ -712,8 +774,6 @@ def _detect_conflicts(events: list[dict]) -> list[dict]:
             except (ValueError, TypeError) as e:
                 import logging
                 logging.getLogger(__name__).warning(f"Error parsing dates for conflict check: {e}")
-                continue
-
     return conflicts
 
 def _get_runner() -> Runner:
@@ -736,22 +796,19 @@ def _get_runner() -> Runner:
 async def run_agent_query(
     query: str,
     conversation_id: str | None = None,
-    context: dict[str, Any] | None = None,
-    source: str = "api",
     session_id: str | None = None,
-) -> dict[str, Any]:
-    """Run a natural-language query through the agent crew.
-
-    This is the main entry point used by API routes and the scheduler.
+    user_id: str = "user",
+    image_uris: list[str] | None = None,
+    **kwargs: Any,
+):
+    """Run a natural language query through the agent hierarchy.
 
     Args:
-        query: The user's natural language query
-        conversation_id: Optional conversation ID for tracking
-        context: Optional context dict
-        source: Origin of the query (api, scheduler:*, etc.)
-        session_id: Persistent session ID for conversation continuity.
-                    If provided, reuses the ADK session so the agent
-                    retains full chat history across queries.
+        query: The user's natural language request.
+        conversation_id: Database ID of the conversation.
+        session_id: Optional ID for conversation continuity (history).
+        user_id: User identifier.
+        image_uris: Optional list of GCS URIs for image analysis.
 
     Returns:
         Dict with 'response', 'diagram' (if generated), and 'status'.
@@ -759,7 +816,6 @@ async def run_agent_query(
     runner = _get_runner()
     session_service = _session_service
 
-    user_id = "user"
     # Determine the ADK session ID to use
     adk_session_id = session_id or conversation_id or str(uuid.uuid4())
 
@@ -798,19 +854,26 @@ async def run_agent_query(
     asyncio.create_task(_emit_start_trace())
 
     # ── Inject User Memory/Preferences ──
+    processed_query = query
     try:
         from app.services.memory_service import memory_service
         user_context = await memory_service.get_active_context(ctx_db.get())
         if user_context:
-            query = f"{user_context}\n\nUSER REQUEST: {query}"
+            processed_query = f"{user_context}\n\nUSER REQUEST: {query}"
             logger.info("🧠 Injected long-term user memory into query")
     except Exception as e:
         logger.warning(f"Failed to inject user memory: {e}")
 
-    # Build the user message
+    # Build the user message parts
+    parts = [Part(text=processed_query)]
+    if image_uris:
+        for uri in image_uris:
+            # Multi-modal support via GCS URIs
+            parts.append(Part(file_data={"file_uri": uri, "mime_type": "image/jpeg"}))
+
     user_content = Content(
         role="user",
-        parts=[Part(text=query)],
+        parts=parts,
     )
 
     # Run the agent
@@ -838,6 +901,9 @@ async def run_agent_query(
                         for part in event.content.parts:
                             if hasattr(part, "text") and part.text:
                                 response_text += part.text
+                                # G8: Stream response chunks in real-time
+                                from app.services.trace_service import trace_service
+                                asyncio.create_task(trace_service.emit_response_chunk(adk_session_id, part.text))
 
                         
                         # Deduce which specialist is acting based on the tool
@@ -952,12 +1018,27 @@ async def run_agent_query(
                                     {"title": f"Create {res_data.get('title')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
                                     author
                                 ))
-                            elif tool_name == "create_event":
+                                # G10 Polish: Auto-update impact metrics
+                                asyncio.create_task(trace_service.emit_canvas_event(
+                                    adk_session_id, "IMPACT_UPDATE", {"tasks_updated": 1, "minutes_reclaimed": 5}, author
+                                ))
+                            
+                            elif tool_name in ["create_event", "update_event"]:
+                                # Emit to Canvas
                                 asyncio.create_task(trace_service.emit_canvas_event(
                                     adk_session_id, "DRAFT_ACTION", 
-                                    {"title": f"Schedule {res_data.get('title')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
+                                    {"title": f"Calendar: {res_data.get('summary', 'Update')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
                                     author
                                 ))
+                                # Auto-update impact metrics
+                                if "Focus" in str(res_data) or "Rescheduled" in str(res_data):
+                                    asyncio.create_task(trace_service.emit_canvas_event(
+                                        adk_session_id, "IMPACT_UPDATE", {"conflicts_resolved": 1, "minutes_reclaimed": 15}, author
+                                    ))
+                                else:
+                                    asyncio.create_task(trace_service.emit_canvas_event(
+                                        adk_session_id, "IMPACT_UPDATE", {"tasks_updated": 1, "minutes_reclaimed": 5}, author
+                                    ))
                             elif tool_name == "record_thought":
                                 asyncio.create_task(trace_service.emit_agent_thought(
                                     adk_session_id, author, res_data.get("thought", "")

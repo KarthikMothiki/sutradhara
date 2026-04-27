@@ -8,7 +8,7 @@ async def main():
     conv_id = str(uuid.uuid4())
     print(f"Starting debug run for conv: {conv_id}")
     try:
-        res = await run_agent_query("Schedule deep work for tomorrow morning", conv_id)
+        res = await run_agent_query("brief me about my notion tasks", conv_id)
         print("Success:", res)
     except Exception as e:
         print("ERROR:")

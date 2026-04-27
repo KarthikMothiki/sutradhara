@@ -60,9 +60,30 @@ async def submit_query(
     # separate session won't be able to find this row (race condition).
     await db.commit()
 
+    # Handle multi-modal image uploads (Base64 -> GCS)
+    image_uris = []
+    if request.images:
+        from app.services.cloud_storage import cloud_storage_service
+        import base64
+        for i, img_b64 in enumerate(request.images):
+            try:
+                # Basic parsing of data:image/png;base64,xxxx
+                if "," in img_b64:
+                    header, data = img_b64.split(",", 1)
+                    mime_type = header.split(";")[0].split(":")[1]
+                else:
+                    data = img_b64
+                    mime_type = "image/jpeg"
+                
+                content = base64.b64decode(data)
+                uri = await cloud_storage_service.upload_file(content, f"query_image_{i}.jpg", mime_type)
+                image_uris.append(uri)
+            except Exception as e:
+                logger.error(f"Failed to process image {i}: {e}")
+
     # Launch the agent processing in the background
     asyncio.create_task(
-        _process_query(conv_id, request.query, request.context, request.session_id)
+        _process_query(conv_id, request.query, request.context, request.session_id, image_uris)
     )
 
     return QueryResponse(
@@ -75,6 +96,7 @@ async def submit_query(
 async def _process_query(
     conversation_id: str, query: str, context: dict[str, Any] | None,
     session_id: str | None = None,
+    image_uris: list[str] | None = None,
 ):
     """Background task that runs the agent crew on a query."""
     from app.database.engine import get_session_factory
@@ -110,10 +132,11 @@ async def _process_query(
             from app.agents.crew import run_agent_query
 
             agent_result = await run_agent_query(
+                session_id=session_id or conversation_id,
+                user_id="demo-user", # Default for demo
                 query=query,
                 conversation_id=conversation_id,
-                context=context,
-                session_id=session_id,
+                image_uris=image_uris,
             )
 
             # Update conversation with result

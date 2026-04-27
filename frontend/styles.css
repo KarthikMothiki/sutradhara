@@ -77,6 +77,7 @@ body {
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+    position: relative;
 }
 
 .col-header {
@@ -88,6 +89,9 @@ body {
     border-bottom: 1px solid var(--border-light);
     flex-shrink: 0;
     background: var(--bg-base);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .col-header h2 {
@@ -200,7 +204,12 @@ body {
 
 .message {
     margin-bottom: 24px;
-    animation: fade-in 0.3s ease;
+    animation: slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-up-fade {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .message-content p {
@@ -254,13 +263,20 @@ body {
 }
 
 .input-wrapper {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.03);
     border: 1px solid var(--border-glass);
-    border-radius: var(--radius-md);
-    padding: 8px 12px;
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow), inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
 #chat-input {
@@ -277,12 +293,48 @@ body {
 
 .btn-send {
     background: var(--primary);
-    border-radius: 4px;
-    padding: 6px;
+    border-radius: var(--radius-md);
+    padding: 8px;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px var(--primary-glow);
+    transition: transform 0.2s, background 0.2s;
+    cursor: pointer;
+}
+
+.btn-send:hover {
+    transform: scale(1.05);
+    background: #4f46e5;
+}
+
+.btn-send:active {
+    transform: scale(0.95);
+}
+
+.btn-input-alt {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-input-alt:hover {
+    color: var(--text-on-dark);
+    background: rgba(255,255,255,0.1);
+}
+
+.btn-input-alt.active {
+    color: var(--primary);
+    background: var(--primary-glow);
 }
 
 /* History Styles */
@@ -344,24 +396,37 @@ body {
 .canvas-content {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 32px;
     display: flex;
     flex-direction: column;
     gap: 24px;
+    min-height: 0; /* Critical for flex scrolling */
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
 }
 
 .canvas-card {
     background: var(--bg-base);
     border-radius: var(--radius-lg);
-    padding: 24px;
+    padding: 28px;
     box-shadow: var(--shadow-soft);
     border: 1px solid var(--border-light);
     position: relative;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    height: auto;
+    min-height: min-content;
+    flex-shrink: 0;
+}
+
+.dark-mode .canvas-card {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .canvas-card:hover {
@@ -385,23 +450,25 @@ body {
 .canvas-card.focus::before { background: var(--agent-focus); }
 
 .card-status {
-    font-size: 0.7rem;
-    font-weight: 700;
+    font-size: 0.65rem;
+    font-weight: 800;
     text-transform: uppercase;
     color: var(--text-muted);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
 }
 
 .card-title {
-    font-weight: 600;
-    font-size: 1.1rem;
+    font-weight: 700;
+    font-size: 1.25rem;
     color: var(--text-main);
+    letter-spacing: -0.01em;
 }
 
 .card-body {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text-dim);
     line-height: 1.6;
+    word-wrap: break-word;
 }
 
 .card-actions {
@@ -595,34 +662,67 @@ body {
 
 /* ── Impact Panel (Footer) ──────────────────────────────── */
 .impact-panel {
-    height: 56px;
-    background: var(--bg-base);
-    border-top: 1px solid var(--border-light);
+    height: 64px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 40px;
-    flex-shrink: 0;
+    gap: 64px;
 }
 
 .impact-stat {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: default;
+}
+
+.impact-stat:hover {
+    transform: translateY(-3px);
+}
+
+.stat-icon {
+    font-size: 1.25rem;
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
 }
 
 .stat-value {
+    font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    font-size: 1rem;
-    color: var(--agent-planner); /* Teal */
+    font-size: 1.25rem;
+    line-height: 1;
+    min-width: 1.5rem;
 }
+
+#stat-conflicts { color: #F59E0B; text-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+#stat-tasks { color: #8B5CF6; text-shadow: 0 0 15px rgba(139, 92, 246, 0.3); }
+#stat-minutes { color: #3B82F6; text-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
 
 .stat-label {
     font-size: 0.65rem;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 800;
     color: var(--text-muted);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+}
+
+@keyframes stat-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); filter: brightness(1.5); }
+    100% { transform: scale(1); }
+}
+
+.stat-update {
+    animation: stat-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ── UI Components ───────────────────────────────────────── */
