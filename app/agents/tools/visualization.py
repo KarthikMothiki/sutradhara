@@ -1,4 +1,4 @@
-"""Custom tool for generating Mermaid workflow diagrams from plan descriptions."""
+"""Custom tool for generating Mermaid and D3 workflow diagrams from plan descriptions."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ def generate_workflow_diagram(
     steps: list[str],
     title: str = "Workflow Plan",
 ) -> dict:
-    """Generate a Mermaid diagram from a list of workflow steps.
+    """Generate a Mermaid and JSON diagram from a list of workflow steps.
 
     This tool is used by the Planner agent to visualize the execution plan
     before running it, so users can approve/modify the workflow.
@@ -22,21 +22,21 @@ def generate_workflow_diagram(
         title: Title for the workflow diagram
 
     Returns:
-        A dict with the Mermaid diagram string and a description.
+        A dict with the Mermaid diagram string, JSON data, and a description.
     """
     if not steps:
         return {
             "diagram": "",
+            "json_data": {"nodes": [], "links": []},
             "description": "No steps provided for diagram generation.",
         }
 
-    # Build a Mermaid flowchart
+    # 1. Build Mermaid string (Legacy/Fallback)
     lines = ["graph TD"]
     lines.append(f'    Start(["🚀 {title}"])')
 
     for i, step in enumerate(steps):
         node_id = f"Step{i + 1}"
-        # Determine icon based on keywords
         if any(word in step.lower() for word in ["calendar", "schedule", "meeting", "event"]):
             icon = "📅"
         elif any(word in step.lower() for word in ["notion", "task", "page", "database"]):
@@ -47,30 +47,50 @@ def generate_workflow_diagram(
             icon = "⚡"
 
         lines.append(f'    {node_id}["{icon} Step {i + 1}: {step}"]')
+        prev_id = "Start" if i == 0 else f"Step{i}"
+        lines.append(f"    {prev_id} --> {node_id}")
 
-        # Connect to previous step
-        if i == 0:
-            lines.append(f"    Start --> {node_id}")
-        else:
-            prev_id = f"Step{i}"
-            lines.append(f"    {prev_id} --> {node_id}")
-
-    # Add end node
-    last_step = f"Step{len(steps)}"
     lines.append(f'    End(["✅ Complete"])')
-    lines.append(f"    {last_step} --> End")
-
-    # Add styling
-    lines.append("")
+    lines.append(f"    Step{len(steps)} --> End")
+    
+    # Styling
     lines.append("    style Start fill:#6366f1,stroke:#4f46e5,color:#fff")
     lines.append("    style End fill:#10b981,stroke:#059669,color:#fff")
     for i in range(len(steps)):
         lines.append(f"    style Step{i + 1} fill:#1e293b,stroke:#334155,color:#e2e8f0")
+    
+    mermaid_diagram = "\n".join(lines)
 
-    diagram = "\n".join(lines)
+    # 2. Build Structured JSON (For D3.js)
+    nodes = [{"id": "Start", "label": "🚀 " + title, "type": "start"}]
+    links = []
+
+    for i, step in enumerate(steps):
+        node_id = f"Step{i + 1}"
+        if any(word in step.lower() for word in ["calendar", "schedule", "meeting", "event"]):
+            icon, type_ = "📅", "calendar"
+        elif any(word in step.lower() for word in ["notion", "task", "page", "database"]):
+            icon, type_ = "📝", "notion"
+        elif any(word in step.lower() for word in ["plan", "analyze", "check"]):
+            icon, type_ = "🧠", "planner"
+        else:
+            icon, type_ = "⚡", "generic"
+
+        nodes.append({
+            "id": node_id,
+            "label": f"{icon} {step}",
+            "type": type_,
+            "step_number": i + 1
+        })
+        prev_id = "Start" if i == 0 else f"Step{i}"
+        links.append({"source": prev_id, "target": node_id})
+
+    nodes.append({"id": "End", "label": "✅ Complete", "type": "end"})
+    links.append({"source": f"Step{len(steps)}", "target": "End"})
 
     return {
-        "diagram": diagram,
+        "diagram": mermaid_diagram,
+        "json_data": {"nodes": nodes, "links": links},
         "description": f"Generated workflow diagram with {len(steps)} steps.",
         "step_count": len(steps),
     }

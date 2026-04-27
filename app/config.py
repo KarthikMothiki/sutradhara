@@ -46,7 +46,11 @@ class Settings(BaseSettings):
 
     # ── Database ────────────────────────────────────────────────
     # For Cloud SQL: postgresql+asyncpg://user:password@/dbname?host=/cloudsql/project:region:instance
-    database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./sutradhara.db")
+    # Local fallback: sqlite+aiosqlite:///./sutradhara.db
+    database_url: str = os.getenv(
+        "DATABASE_URL", "sqlite+aiosqlite:///./sutradhara.db"
+    )
+    cloud_sql_connection_name: str = os.getenv("CLOUD_SQL_CONNECTION_NAME", "")
 
     # ── Server ──────────────────────────────────────────────────
     port: int = 8080

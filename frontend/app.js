@@ -472,6 +472,89 @@ async function renderWorkflow(diagram) {
     } catch (e) { console.error('Mermaid error', e); }
 }
 
+function renderD3Workflow(data) {
+    workflowContainer.innerHTML = '<div id="workflow-graph"></div>';
+    const container = document.getElementById('workflow-graph');
+    const width = container.clientWidth;
+    const height = container.clientHeight || 400;
+
+    const svg = d3.select("#workflow-graph")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .call(d3.zoom().on("zoom", (event) => {
+            g.attr("transform", event.transform);
+        }))
+        .append("g");
+
+    const g = svg.append("g");
+
+    const simulation = d3.forceSimulation(data.nodes)
+        .force("link", d3.forceLink(data.links).id(d => d.id).distance(120))
+        .force("charge", d3.forceManyBody().strength(-400))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    const link = g.append("g")
+        .attr("class", "links")
+        .selectAll("line")
+        .data(data.links)
+        .enter().append("line")
+        .attr("class", "d3-link");
+
+    const node = g.append("g")
+        .attr("class", "nodes")
+        .selectAll("g")
+        .data(data.nodes)
+        .enter().append("g")
+        .attr("class", d => `d3-node node-${d.type}`)
+        .on("click", (event, d) => {
+            d3.selectAll(".d3-node circle").style("stroke-width", "2px");
+            d3.select(event.currentTarget).select("circle").style("stroke-width", "4px");
+            filterLoomLogs(d.type === 'start' || d.type === 'end' ? 'manager' : d.type);
+        })
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+    node.append("circle")
+        .attr("r", 10);
+
+    node.append("text")
+        .attr("class", "d3-label")
+        .attr("dx", 15)
+        .attr("dy", ".35em")
+        .text(d => d.label);
+
+    simulation.on("tick", () => {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        node
+            .attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
+}
+
 function filterLoomLogs(agentName) {
     document.getElementById('filter-status').textContent = `Filtering: ${agentName}`;
     document.querySelectorAll('.loom-log-entry').forEach(entry => {
@@ -705,7 +788,11 @@ function handleAgentEvent(ev) {
             addLoomThought(agent, ev.data.thought);
             break;
         case 'workflow_diagram':
-            renderWorkflow(ev.data.diagram);
+            if (ev.data.json_data) {
+                renderD3Workflow(ev.data.json_data);
+            } else {
+                renderWorkflow(ev.data.diagram);
+            }
             break;
         case 'response_chunk':
             handleResponseChunk(ev.data.text);

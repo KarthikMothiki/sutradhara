@@ -18,6 +18,7 @@ dependencies = [
     # --- Database ---
     "sqlalchemy[asyncio]>=2.0.0",
     "aiosqlite>=0.20.0",
+    "asyncpg>=0.30.0",
 
     # --- Google APIs ---
     "google-api-python-client>=2.140.0",

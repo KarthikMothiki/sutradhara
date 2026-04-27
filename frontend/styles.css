@@ -961,3 +961,48 @@ body {
     font-style: italic;
     font-weight: 600;
 }
+/* ── D3 Workflow Visualization ──────────────────────────────── */
+#workflow-graph {
+    width: 100%;
+    height: 400px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    cursor: grab;
+}
+
+#workflow-graph:active {
+    cursor: grabbing;
+}
+
+.d3-node circle {
+    stroke-width: 2px;
+    transition: filter 0.3s, r 0.3s;
+}
+
+.d3-node:hover circle {
+    filter: brightness(1.2);
+    r: 12;
+}
+
+.d3-link {
+    stroke: var(--border-light);
+    stroke-opacity: 0.6;
+    stroke-width: 2px;
+    fill: none;
+}
+
+.d3-label {
+    font-size: 10px;
+    font-family: 'Inter', sans-serif;
+    fill: var(--text-main);
+    pointer-events: none;
+}
+
+.node-calendar { fill: var(--agent-calendar); stroke: var(--agent-calendar); }
+.node-notion { fill: var(--agent-notion); stroke: var(--agent-notion); }
+.node-planner { fill: var(--agent-planner); stroke: var(--agent-planner); }
+.node-start { fill: #6366f1; stroke: #4f46e5; }
+.node-end { fill: #10b981; stroke: #059669; }
+.node-generic { fill: #94a3b8; stroke: #64748b; }
