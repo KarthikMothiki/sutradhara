@@ -15,6 +15,7 @@ from app.database.models import ActionLog, Conversation, ConversationStatus, Wor
 from app.services.demo_service import seed_demo_data
 from app.services.pending_actions_service import pending_actions_service
 from app.services.anticipator_service import anticipator_service
+from app.config import get_settings
 
 
 from app.database.schemas import (
@@ -28,6 +29,7 @@ from app.database.schemas import (
     UndoResponse,
     WorkflowRunResponse,
     ActionLogResponse,
+    AppConfig,
 )
 from app.services.rollback_service import rollback_service
 
@@ -80,6 +82,11 @@ async def submit_query(
                 image_uris.append(uri)
             except Exception as e:
                 logger.error(f"Failed to process image {i}: {e}")
+
+    # Set runtime overrides in settings (singleton)
+    settings = get_settings()
+    settings.runtime_notion_token = request.notion_token
+    settings.runtime_notion_db_id = request.notion_database_id
 
     # Launch the agent processing in the background
     asyncio.create_task(
@@ -418,7 +425,13 @@ async def trigger_live_briefing(db: AsyncSession = Depends(get_db)):
 
 @router.get("/demo/seed")
 async def seed_demo(db: AsyncSession = Depends(get_db)):
-    """Seed the database with rich demo data for the judge's walk-through."""
+    """Seed the database with rich demo data for the judge's walk-through. Only works in Demo Mode."""
+    settings = get_settings()
+    if not settings.demo_mode:
+        raise HTTPException(
+            status_code=403,
+            detail="Demo seeding is disabled in Live Mode. Switch to Demo Mode in Settings first."
+        )
     return await seed_demo_data(db)
 
 # ── Draft-Approval Flow Endpoints ──────────────────────────────
@@ -459,3 +472,37 @@ async def reject_action(action_id: str, db: AsyncSession = Depends(get_db)):
     if success:
         return {"status": "rejected", "action_id": action_id}
     raise HTTPException(status_code=404, detail="Action not found")
+
+@router.post("/actions/{action_id}/reset")
+async def reset_action(action_id: str, db: AsyncSession = Depends(get_db)):
+    """Reset a rejected/failed action back to pending so it can be retried."""
+    from app.database.models import PendingAction
+    from sqlalchemy import select
+    result = await db.execute(select(PendingAction).where(PendingAction.id == action_id))
+    action = result.scalar_one_or_none()
+    if not action:
+        raise HTTPException(status_code=404, detail="Action not found")
+    action.status = "pending"
+    await db.commit()
+    return {"status": "reset", "action_id": action_id}
+
+
+# ── Configuration Endpoints ─────────────────────────────────────
+
+@router.get("/config", response_model=AppConfig)
+async def get_config():
+    """Get the current application configuration."""
+    settings = get_settings()
+    return AppConfig(
+        demo_mode=settings.demo_mode,
+        notion_token_present=bool(settings.notion_token or settings.runtime_notion_token),
+        notion_db_present=bool(settings.notion_database_id or settings.runtime_notion_db_id)
+    )
+
+@router.post("/config", response_model=AppConfig)
+async def update_config(config: AppConfig):
+    """Update the application configuration at runtime."""
+    settings = get_settings()
+    settings.demo_mode = config.demo_mode
+    logger.info(f"⚙️ Runtime config update: DEMO_MODE={settings.demo_mode}")
+    return await get_config()

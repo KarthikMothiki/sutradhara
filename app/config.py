@@ -25,8 +25,22 @@ class Settings(BaseSettings):
     google_cloud_bucket: str = ""
 
     # ── Demo Mode ────────────────────────────────────────────────
-    # When True, all MCP calls return seed data instead of hitting live APIs
-    demo_mode: bool = bool(os.getenv("DEMO_MODE", "false").lower() in ("true", "1"))
+    # When True, all MCP calls return seed data instead of hitting live APIs.
+    #
+    # Auto-detection logic:
+    #   • Cloud Run always sets the K_SERVICE env var → default to Demo Mode
+    #     so judges see safe pre-seeded data on the public URL.
+    #   • Localhost never has K_SERVICE → default to the DEMO_MODE env var
+    #     (set to "false" in .env) so your real calendar & Notion are used.
+    demo_mode: bool = bool(
+        os.getenv("K_SERVICE")  # Cloud Run auto-inject → Demo Mode ON
+        if os.getenv("K_SERVICE")
+        else os.getenv("DEMO_MODE", "false").lower() in ("true", "1")
+    )
+
+    # Runtime overrides (stateless, passed per-request)
+    runtime_notion_token: Optional[str] = None
+    runtime_notion_db_id: Optional[str] = None
 
     # ── Model Fallback Chain ────────────────────────────────────
     # Comma-separated list: tries each model in order until one works

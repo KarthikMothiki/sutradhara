@@ -18,16 +18,17 @@ def get_notion_client() -> AsyncClient | None:
         AsyncClient or None if no token is configured.
     """
     settings = get_settings()
+    token = settings.runtime_notion_token or settings.notion_token
 
-    if not settings.notion_token:
+    if not token:
         logger.error(
             "NOTION_TOKEN is not configured. "
             "See docs/setup_notion.md for setup instructions."
         )
         return None
 
-    client = AsyncClient(auth=settings.notion_token)
-    logger.info("Notion client initialized.")
+    client = AsyncClient(auth=token)
+    logger.info(f"Notion client initialized (Using {'runtime' if settings.runtime_notion_token else 'configured'} token).")
     return client
 
 
@@ -41,13 +42,13 @@ def get_notion_client_sync() -> Client | None:
         Client or None if no token is configured.
     """
     settings = get_settings()
+    token = settings.runtime_notion_token or settings.notion_token
 
-    if not settings.notion_token:
+    if not token:
         logger.error(
             "NOTION_TOKEN is not configured. "
             "See docs/setup_notion.md for setup instructions."
         )
         return None
 
-    return Client(auth=settings.notion_token)
-
+    return Client(auth=token)

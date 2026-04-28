@@ -317,8 +317,9 @@ def _get_calendar_function_tools() -> list:
         description: str = "",
         attendees: list[str] = [],
         location: str = "",
+        insight: str = "",
     ) -> dict:
-        """Create a new calendar event. Required to be STAGED for human approval."""
+        """Create a new calendar event. Required to be STAGED for human approval. Use 'insight' to explain why this event is needed."""
         from app.services.pending_actions_service import pending_actions_service
         try:
             conv_id = ctx_conversation_id.get()
@@ -326,7 +327,8 @@ def _get_calendar_function_tools() -> list:
             
             payload = {
                 "title": title, "start": start, "end": end, 
-                "description": description, "attendees": attendees, "location": location
+                "description": description, "attendees": attendees, 
+                "location": location, "insight": insight
             }
             
             action_id = await pending_actions_service.create_draft(
@@ -348,16 +350,17 @@ def _get_calendar_function_tools() -> list:
         start: str = "",
         end: str = "",
         description: str = "",
+        insight: str = "",
     ) -> dict:
-        """Update an existing calendar event. Required to be STAGED for human approval."""
+        """Update an existing calendar event. Required to be STAGED for human approval. Use 'insight' to explain the reasoning for the change (e.g. 'To resolve a conflict with your meeting')."""
         from app.services.pending_actions_service import pending_actions_service
         try:
             conv_id = ctx_conversation_id.get()
             db = ctx_db.get()
             
             payload = {
-                "eventId": event_id, "title": title, "start": start, "end": end, 
-                "description": description
+                "eventId": event_id, "title": title, "start": start, 
+                "end": end, "description": description, "insight": insight
             }
             
             action_id = await pending_actions_service.create_draft(
@@ -473,8 +476,9 @@ def _get_notion_function_tools() -> list:
         """Get Notion API headers."""
         from app.config import get_settings
         settings = get_settings()
+        token = settings.runtime_notion_token or settings.notion_token
         return {
-            "Authorization": f"Bearer {settings.notion_token}",
+            "Authorization": f"Bearer {token}",
             "Notion-Version": "2022-06-28",
             "Content-Type": "application/json",
         }
@@ -505,10 +509,11 @@ def _get_notion_function_tools() -> list:
                 return {"pages": tasks, "count": len(tasks), "source": "demo"}
             # ── END DEMO MODE BYPASS ───────────────────────────────
             import httpx
-            if not settings.notion_token:
-                return {"error": "Notion not configured. Set NOTION_TOKEN in .env."}
+            token = settings.runtime_notion_token or settings.notion_token
+            if not token:
+                return {"error": "Notion not configured. Set NOTION_TOKEN in .env or provide it in Settings."}
 
-            db_id = database_id or settings.notion_database_id
+            db_id = database_id or settings.runtime_notion_db_id or settings.notion_database_id
             if not db_id:
                 return {"error": "No database_id provided and no default configured."}
 
@@ -573,8 +578,9 @@ def _get_notion_function_tools() -> list:
         status: str = "To Do",
         priority: str = "",
         content: str = "",
+        insight: str = "",
     ) -> dict:
-        """Create a new Notion page. Required to be STAGED for human approval."""
+        """Create a new Notion page. Required to be STAGED for human approval. Use 'insight' to explain the purpose of this task."""
         from app.services.pending_actions_service import pending_actions_service
         try:
             conv_id = ctx_conversation_id.get()
@@ -582,7 +588,7 @@ def _get_notion_function_tools() -> list:
             
             payload = {
                 "title": title, "content": content, "status": status, 
-                "priority": priority, "database_id": database_id
+                "priority": priority, "database_id": database_id, "insight": insight
             }
             
             action_id = await pending_actions_service.create_draft(
@@ -605,8 +611,9 @@ def _get_notion_function_tools() -> list:
         title: str = "",
         deadline: str = "",
         due_date: str = "",
+        insight: str = "",
     ) -> dict:
-        """Update a Notion page's properties. Required to be STAGED for human approval."""
+        """Update a Notion page's properties. Required to be STAGED for human approval. Use 'insight' to explain the reasoning for the change."""
         from app.services.pending_actions_service import pending_actions_service
         try:
             conv_id = ctx_conversation_id.get()
@@ -614,7 +621,8 @@ def _get_notion_function_tools() -> list:
             
             payload = {
                 "page_id": page_id, "status": status, "priority": priority, 
-                "title": title, "deadline": deadline, "due_date": due_date
+                "title": title, "deadline": deadline, "due_date": due_date,
+                "insight": insight
             }
             
             action_id = await pending_actions_service.create_draft(
@@ -742,15 +750,25 @@ def _detect_conflicts(events: list[dict]) -> list[dict]:
     """Analyze calendar events for overlapping time windows."""
     from datetime import datetime as dt
     conflicts = []
-    sorted_events = sorted(events, key=lambda e: e.get("start", {}).get("dateTime", e.get("start", {}).get("date", "")))
+    
+    def get_time_str(e, field):
+        val = e.get(field, "")
+        if isinstance(val, dict):
+            return val.get("dateTime", val.get("date", ""))
+        return str(val)
+
+    def get_title(e):
+        return e.get("summary", e.get("title", "Untitled Event"))
+
+    sorted_events = sorted(events, key=lambda e: get_time_str(e, "start"))
 
     for i in range(len(sorted_events)):
         for j in range(i + 1, len(sorted_events)):
             a = sorted_events[i]
             b = sorted_events[j]
             try:
-                a_end = a.get("end", {}).get("dateTime", "")
-                b_start = b.get("start", {}).get("dateTime", "")
+                a_end = get_time_str(a, "end")
+                b_start = get_time_str(b, "start")
                 
                 # If they are just dates (all-day events), skip conflict checking for now
                 if not ("T" in a_end and "T" in b_start):
@@ -760,15 +778,15 @@ def _detect_conflicts(events: list[dict]) -> list[dict]:
                 b_start_dt = dt.fromisoformat(b_start.replace("Z", "+00:00"))
                 
                 if a_end_dt > b_start_dt:
-                    a_start_dt = dt.fromisoformat(a.get("start", {}).get("dateTime", "").replace("Z", "+00:00"))
-                    b_end_dt = dt.fromisoformat(b.get("end", {}).get("dateTime", "").replace("Z", "+00:00"))
+                    a_start_dt = dt.fromisoformat(get_time_str(a, "start").replace("Z", "+00:00"))
+                    b_end_dt = dt.fromisoformat(get_time_str(b, "end").replace("Z", "+00:00"))
                     overlap = min(a_end_dt, b_end_dt) - max(a_start_dt, b_start_dt)
                     overlap_min = int(overlap.total_seconds() / 60)
                     
                     if overlap_min > 0:
                         conflicts.append({
-                            "eventA": {"title": a.get("summary", "Event A"), "start": a_start_dt.isoformat(), "end": a_end_dt.isoformat()},
-                            "eventB": {"title": b.get("summary", "Event B"), "start": b_start_dt.isoformat(), "end": b_end_dt.isoformat()},
+                            "eventA": {"title": get_title(a), "start": a_start_dt.isoformat(), "end": a_end_dt.isoformat()},
+                            "eventB": {"title": get_title(b), "start": b_start_dt.isoformat(), "end": b_end_dt.isoformat()},
                             "overlap": overlap_min
                         })
             except (ValueError, TypeError) as e:
@@ -1007,7 +1025,11 @@ async def run_agent_query(
                                     ))
                             elif tool_name == "query_notion_database":
                                 pages = res_data.get("pages", [])
-                                tasks = [{"title": p.get("title", "Untitled"), "priority": p.get("priority", "Med")} for p in pages]
+                                tasks = [{
+                                    "title": p.get("title", "Untitled"),
+                                    "priority": p.get("priority", ""),
+                                    "status": p.get("status", ""),
+                                } for p in pages]
                                 asyncio.create_task(trace_service.emit_canvas_event(
                                     adk_session_id, "NOTION_TASKS", {"tasks": tasks}, author
                                 ))

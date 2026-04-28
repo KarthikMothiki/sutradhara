@@ -20,6 +20,15 @@ class QueryRequest(BaseModel):
         default=None, description="Optional context (e.g., preferred timezone)"
     )
     images: list[str] | None = Field(default=None, description="Optional list of Base64 encoded images")
+    notion_token: str | None = Field(default=None, description="Dynamic Notion token for this request")
+    notion_database_id: str | None = Field(default=None, description="Dynamic Notion DB ID for this request")
+
+
+class AppConfig(BaseModel):
+    """Schema for dynamic application configuration."""
+    demo_mode: bool
+    notion_token_present: bool = False
+    notion_db_present: bool = False
 
 
 class FeedbackRequest(BaseModel):

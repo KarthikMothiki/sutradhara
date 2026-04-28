@@ -5,17 +5,16 @@
 
 // ── Configuration ──────────────────────────────────────────────
 // Dynamically detect the backend URL (handles 8080, 8081, or Cloud Run)
-const BACKEND_URL = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
-    ? window.location.origin 
-    : 'https://sutradhara-agent-xyz.a.run.app'; // Placeholder for production
-
-const API_BASE = BACKEND_URL + '/api/v1';
-const WS_BASE = BACKEND_URL.replace('http://', 'ws://').replace('https://', 'wss://');
+const BACKEND_URL = window.location.origin;
+const API_BASE = '/api/v1';
+const WS_BASE = window.location.origin.replace('http://', 'ws://').replace('https://', 'wss://');
 
 // ── State ──────────────────────────────────────────────────────
 let ws = null;
 let isProcessing = false;
-const chatSessionId = crypto.randomUUID();
+const chatSessionId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') 
+    ? crypto.randomUUID() 
+    : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
 // Impact Metrics
 const impactMetrics = {
@@ -96,6 +95,34 @@ function setupEventListeners() {
             sendCommand();
         });
     });
+
+    // ✨ Generate Strategy button — mode-aware
+    const btnBriefing = document.getElementById('btn-briefing');
+    if (btnBriefing) {
+        btnBriefing.addEventListener('click', async () => {
+            if (btnBriefing.disabled) return;
+            btnBriefing.disabled = true;
+            btnBriefing.textContent = '⏳ Analyzing...';
+            try {
+                await runTheLoom();
+            } finally {
+                // Reset button after 60s max (covers slow LLM)
+                setTimeout(() => {
+                    btnBriefing.disabled = false;
+                    btnBriefing.textContent = '✨ Generate Strategy';
+                }, 60000);
+                // Also reset as soon as query completes
+                const resetBtn = () => {
+                    btnBriefing.disabled = false;
+                    btnBriefing.textContent = '✨ Generate Strategy';
+                };
+                // Poll isProcessing to detect completion
+                const checkDone = setInterval(() => {
+                    if (!isProcessing) { resetBtn(); clearInterval(checkDone); }
+                }, 1000);
+            }
+        });
+    }
 
     // Demo Mode Button
     document.getElementById('btn-demo').addEventListener('click', runDemoSeed);
@@ -193,7 +220,9 @@ async function sendCommand() {
     const payload = { 
         query, 
         session_id: chatSessionId,
-        images: uploadedImages.map(img => img.base64)
+        images: uploadedImages.map(img => img.base64),
+        notion_token: localStorage.getItem('notion_token'),
+        notion_database_id: localStorage.getItem('notion_db_id')
     };
 
     chatInput.value = '';
@@ -304,6 +333,11 @@ function toggleVoiceRecognition() {
 }
 
 async function runDemoSeed() {
+    const isLiveMode = document.getElementById('mode-badge')?.textContent?.includes('Live');
+    if (isLiveMode) {
+        showToast('ℹ️', 'Demo seeding skipped — Live Mode is active.');
+        return;
+    }
     showToast('🎬', 'Initializing Demo Mode...');
     try {
         const response = await fetch(`${API_BASE}/demo/seed`);
@@ -323,6 +357,20 @@ async function runDemoSeed() {
 }
 
 async function runTheLoom() {
+    const isLiveMode = document.getElementById('mode-badge')?.textContent?.includes('Live');
+
+    if (isLiveMode) {
+        // Live Mode: skip seeding, directly send briefing against real data
+        chatMessages.innerHTML = '';
+        traceTimeline.innerHTML = '';
+        canvasContent.innerHTML = '<div id="briefing-anchor"></div>';
+        showToast('🔗', 'Live Mode — briefing your real data...');
+        chatInput.value = "Give me my daily briefing. Check my calendar for conflicts and cross-reference my high-priority Notion tasks.";
+        await sendCommand();
+        return;
+    }
+
+    // Demo Mode: full scripted showreel
     showToast('✨', 'Running "The Loom" showreel...');
     
     // 1. Reset and Seed
@@ -366,8 +414,8 @@ function renderCanvasCard(type, data, agent = 'manager') {
         case 'CONFLICT_RED_ZONE':
             content = renderConflictRedZone(data.eventA, data.eventB, data.overlap, `
                 <div class="card-actions">
-                    <button class="btn-primary" onclick="resolveConflictDemo(this, ${data.overlap || 30})">Reschedule Client Review</button>
-                    <button class="btn-outline" onclick="this.closest('.canvas-card').remove()">Dismiss</button>
+                    <button class="btn-primary" onclick="resolveConflictDemo(this, ${data.overlap || 30})">Reschedule to resolve</button>
+                    <button class="btn-secondary" onclick="this.closest('.canvas-card').remove()">Dismiss</button>
                 </div>
             `);
             break;
@@ -381,25 +429,92 @@ function renderCanvasCard(type, data, agent = 'manager') {
             content = renderDraftAction(data, data.description, data.action_id);
             break;
 
+        case 'CALENDAR_DATA': {
+            const events = data.events || [];
+            const agentLabel = 'Calendar Specialist';
+            if (!events.length) {
+                content = `
+                    <div class="card-header">
+                        <span class="card-status">Calendar</span>
+                        <span class="badge-pill status">Clear</span>
+                    </div>
+                    <div class="card-title">📅 Schedule Clear</div>
+                    <div class="card-body" style="color:var(--text-muted)">No events found in the queried range. Your schedule is open.</div>
+                `;
+            } else {
+                const eventRows = events.map(e => {
+                    const start = e.start ? new Date(e.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                    const end = e.end ? new Date(e.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                    const attendeeCount = (e.attendees || []).length;
+                    return `
+                        <div class="event-row">
+                            <div class="event-time-badge">
+                                <span>${start}</span>
+                                ${end ? `<span class="time-sep">→</span><span>${end}</span>` : ''}
+                            </div>
+                            <div class="event-info">
+                                <div class="event-row-title">${e.title || e.summary || 'Untitled Event'}</div>
+                                ${attendeeCount ? `<div class="event-row-meta">👥 ${attendeeCount} attendee${attendeeCount > 1 ? 's' : ''}</div>` : ''}
+                            </div>
+                        </div>`;
+                }).join('');
+                content = `
+                    <div class="card-header">
+                        <span class="card-status">Calendar Feed</span>
+                        <span class="badge-pill date">${events.length} event${events.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="card-title">📅 Upcoming Schedule</div>
+                    <div class="event-list">${eventRows}</div>
+                `;
+            }
+            break;
+        }
 
-        case 'NOTION_TASKS':
+        case 'NOTION_TASKS': {
+            const tasks = data.tasks || [];
+            const priorityOrder = { 'high': 0, 'med': 1, 'medium': 1, 'low': 2, '': 3 };
+            const sorted = [...tasks].sort((a, b) => 
+                (priorityOrder[a.priority?.toLowerCase()] ?? 3) - (priorityOrder[b.priority?.toLowerCase()] ?? 3)
+            );
+            const taskRows = sorted.map(t => {
+                const pClass = (t.priority || '').toLowerCase().startsWith('h') ? 'high'
+                             : (t.priority || '').toLowerCase().startsWith('l') ? 'low' : 'med';
+                return `
+                    <div class="task-row">
+                        <div class="task-checkbox"></div>
+                        <div class="task-content">
+                            <div class="task-title">${t.title}</div>
+                            ${t.status ? `<div class="task-status-text">${t.status}</div>` : ''}
+                        </div>
+                        ${t.priority ? `<span class="badge-pill priority-${pClass}">${t.priority}</span>` : ''}
+                    </div>`;
+            }).join('');
             content = `
                 <div class="card-header">
-                    <span class="card-tag">Notion Sync</span>
+                    <span class="card-status">Notion Sync</span>
+                    <span class="badge-pill date">${tasks.length} task${tasks.length !== 1 ? 's' : ''}</span>
                 </div>
-                <div class="card-title">Top Priorities</div>
-                <div class="task-list" style="margin-top:8px">
-                    ${data.tasks.map(t => `<div style="font-size:0.85rem; padding:4px 0; border-bottom:0.5px solid var(--border)">• ${t.title} <span class="badge">${t.priority}</span></div>`).join('')}
-                </div>
+                <div class="card-title">📋 Task Priorities</div>
+                <div class="task-list">${taskRows}</div>
             `;
-            updateImpact('tasks', data.tasks.length);
+            updateImpact('tasks', tasks.length);
             break;
+        }
+
+        default:
+            // Fallback for unknown types — show raw JSON gracefully
+            content = `
+                <div class="card-header"><span class="card-status">${type}</span></div>
+                <div class="card-title">Agent Output</div>
+                <pre style="font-size:0.7rem;color:var(--text-muted);overflow:auto;max-height:200px">${JSON.stringify(data, null, 2)}</pre>
+            `;
     }
 
     card.innerHTML = content;
     canvasContent.appendChild(card);
     canvasContent.scrollTop = canvasContent.scrollHeight;
 }
+
 
 function renderBriefingCard(data) {
     const anchor = document.getElementById('briefing-anchor');
@@ -494,12 +609,28 @@ function renderD3Workflow(data) {
         .force("charge", d3.forceManyBody().strength(-400))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
+    // Add marker for arrows
+    svg.append("defs").append("marker")
+        .attr("id", "arrowhead")
+        .attr("viewBox", "-0 -5 10 10")
+        .attr("refX", 20)
+        .attr("refY", 0)
+        .attr("orient", "auto")
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("xoverflow", "visible")
+        .append("svg:path")
+        .attr("d", "M 0,-5 L 10 ,0 L 0,5")
+        .attr("fill", "#94a3b8")
+        .style("stroke", "none");
+
     const link = g.append("g")
         .attr("class", "links")
         .selectAll("line")
         .data(data.links)
         .enter().append("line")
-        .attr("class", "d3-link");
+        .attr("class", "d3-link")
+        .attr("marker-end", "url(#arrowhead)");
 
     const node = g.append("g")
         .attr("class", "nodes")
@@ -518,13 +649,15 @@ function renderD3Workflow(data) {
             .on("end", dragended));
 
     node.append("circle")
-        .attr("r", 10);
+        .attr("r", 10)
+        .style("filter", "drop-shadow(0 0 5px rgba(0,0,0,0.2))");
 
     node.append("text")
         .attr("class", "d3-label")
         .attr("dx", 15)
         .attr("dy", ".35em")
-        .text(d => d.label);
+        .text(d => d.label)
+        .style("font-weight", d => (d.type === 'start' || d.type === 'end') ? "700" : "400");
 
     simulation.on("tick", () => {
         link
@@ -692,29 +825,33 @@ function updateStatus(state, msg) {
 
 async function approveStagedAction(btn, actionId) {
     const card = btn.closest('.canvas-card');
+    const isRetry = btn.textContent.includes('Retry');
     btn.disabled = true;
     btn.textContent = 'Executing...';
     
     try {
+        // If retrying a rejected action, reset it first
+        if (isRetry) {
+            await fetch(`${API_BASE}/actions/${actionId}/reset`, { method: 'POST' });
+        }
+
         const response = await fetch(`${API_BASE}/actions/${actionId}/approve`, { method: 'POST' });
         const data = await response.json();
         
         if (data.error) throw new Error(data.error);
 
+        // Mark card as executed
         card.style.borderColor = 'var(--agent-planner)';
-        const badge = card.querySelector('.badge');
+        const badge = card.querySelector('.badge, .badge-pill');
         if (badge) {
-            badge.textContent = 'Executed';
-            badge.style.color = 'var(--agent-planner)';
+            badge.textContent = '✓ Executed';
+            badge.style.background = 'rgba(16, 185, 129, 0.15)';
+            badge.style.color = '#10b981';
         }
-        
-        btn.remove();
-        const secondaryBtn = card.querySelector('.btn-secondary') || card.querySelector('.btn-outline');
-        if (secondaryBtn) secondaryBtn.remove();
+        card.querySelectorAll('.card-actions button').forEach(b => b.remove());
         
         showToast('✅', 'Action executed & logged.');
-        // Factual: each approved action saves coordination time
-        const reclaimed = actionId.startsWith('demo') ? 15 : 10;
+        const reclaimed = 10;
         updateImpact('tasks', 1, reclaimed);
     } catch (error) {
         showToast('❌', `Execution failed: ${error.message}`);
@@ -877,14 +1014,42 @@ function renderConflictRedZone(eventA, eventB, overlap, optionsHtml) {
 
 function renderDraftAction(data, description, actionId) {
     const safeActionId = (actionId || '').replace(/'/g, "\\'");
-    const desc = (description || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    
+    // Parse description for markdown-like bolding
+    let desc = (description || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    
+    // Extract structured data from description or data payload
+    const priority = data.priority || '';
+    const dueDate = data.due_date || data.deadline || '';
+    const status = data.status || '';
+    
+    // Split description into "What" and "Insight" if it contains the insight header
+    let insightHtml = '';
+    if (desc.includes('Proactive Insight:')) {
+        const parts = desc.split('Proactive Insight:');
+        desc = parts[0];
+        insightHtml = `
+            <div class="card-insight">
+                <span class="insight-icon">💡</span>
+                <span class="insight-text">${parts[1]}</span>
+            </div>
+        `;
+    }
+
+    // Build structured badges
+    let badgesHtml = '';
+    if (priority) badgesHtml += `<span class="badge-pill priority-${priority.toLowerCase()}">${priority}</span>`;
+    if (dueDate) badgesHtml += `<span class="badge-pill date"><i class="far fa-calendar"></i> ${dueDate}</span>`;
+    if (status) badgesHtml += `<span class="badge-pill status">${status}</span>`;
+
     return `
         <div class="card-header">
             <span class="card-status">Staged Action</span>
-            <span class="badge">Draft</span>
+            <div class="card-badges">${badgesHtml}</div>
         </div>
         <div class="card-title">${data.title || 'Proposed Update'}</div>
         <div class="card-body">${desc}</div>
+        ${insightHtml}
         <div class="card-actions">
             <button class="btn-primary" onclick="approveStagedAction(this, '${safeActionId}')">Approve & Execute</button>
             <button class="btn-secondary" onclick="rejectStagedAction(this, '${safeActionId}')">Discard</button>
@@ -937,32 +1102,65 @@ async function fetchHistory() {
     const historyList = document.getElementById('history-list');
     if (!historyList) return;
     
+    historyList.innerHTML = '<div class="text-muted" style="text-align:center; padding:20px;">Fetching history...</div>';
+
     try {
-        const response = await fetch(`${API_BASE}/history?limit=20`);
+        // API returns { conversations: [...], total, page, per_page }
+        const response = await fetch(`${API_BASE}/history?per_page=30`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        
-        if (!data.history || data.history.length === 0) {
+
+        const sessions = data.conversations || [];
+
+        if (sessions.length === 0) {
             historyList.innerHTML = '<div class="text-muted" style="text-align:center; padding:20px;">No past sessions found.</div>';
             return;
         }
         
-        historyList.innerHTML = data.history.map(item => {
+        historyList.innerHTML = sessions.map(item => {
             const d = new Date(item.created_at);
             const dateStr = d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const statusClass = item.status === 'completed' ? 'status-ok' : item.status === 'failed' ? 'status-err' : 'status-pending';
+            const query = item.user_query || 'Unnamed workflow';
+            const truncated = query.length > 55 ? query.substring(0, 52) + '...' : query;
             return `
                 <div class="history-item" onclick="loadHistorySession('${item.id}')">
-                    <span class="date">${dateStr}</span>
-                    <span class="query">${item.query || 'Unnamed workflow'}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                        <span class="date" style="font-size:0.65rem; color:var(--text-muted); white-space:nowrap;">${dateStr}</span>
+                        <span class="badge-pill ${statusClass}" style="font-size:0.55rem; padding:2px 6px;">${item.status}</span>
+                    </div>
+                    <span class="query" style="display:block; margin-top:4px; font-size:0.75rem;">${truncated}</span>
                 </div>
             `;
         }).join('');
     } catch (e) {
+        console.error('History fetch error:', e);
         historyList.innerHTML = '<div class="text-muted" style="text-align:center; padding:20px;">Failed to load history.</div>';
     }
 }
 
-function loadHistorySession(id) {
-    showToast('⏳', 'Loading session state is not fully supported in this version.');
+async function loadHistorySession(id) {
+    try {
+        // Switch back to Command tab to show the loaded session
+        document.getElementById('tab-chat').click();
+        showToast('📂', 'Loading session...');
+
+        const res = await fetch(`${API_BASE}/query/${id}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        // Clear chat and show the historical exchange
+        chatMessages.innerHTML = '';
+        addChatMessage('user', data.user_query || 'Previous query');
+        if (data.final_response) {
+            addChatMessage('assistant', data.final_response);
+        }
+        clearCanvas();
+        clearLoom();
+        showToast('✅', 'Session loaded.');
+    } catch (e) {
+        showToast('❌', 'Could not load that session.');
+    }
 }
 // ── Intelligence Suite Logic ──────────────────────────────────
 
@@ -1023,18 +1221,80 @@ async function triggerBriefing() {
 
 // ── Settings Management ───────────────────────────────────────
 
-function initSettings() {
+async function initSettings() {
+    // Pre-populate from localStorage (user-saved overrides)
     document.getElementById('input-notion-token').value = localStorage.getItem('notion_token') || '';
     document.getElementById('input-notion-db').value = localStorage.getItem('notion_db_id') || '';
+
+    try {
+        const res = await fetch(`${API_BASE}/config`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const config = await res.json();
+
+        const checkDemo = document.getElementById('check-demo-mode');
+        if (checkDemo) checkDemo.checked = config.demo_mode;
+        updateModeBadge(config.demo_mode);
+
+        // ── Auto-credential injection for localhost Live Mode ──
+        // When the backend reports Live mode AND has credentials loaded from .env,
+        // we don't need the user to paste them manually — show a green indicator instead.
+        if (!config.demo_mode) {
+            const notionTokenInput = document.getElementById('input-notion-token');
+            const notionDbInput    = document.getElementById('input-notion-db');
+
+            if (config.notion_token_present && !notionTokenInput.value) {
+                notionTokenInput.placeholder = '✅ Loaded from server .env';
+                notionTokenInput.style.borderColor = '#10B981';
+            }
+            if (config.notion_db_present && !notionDbInput.value) {
+                notionDbInput.placeholder = '✅ Loaded from server .env';
+                notionDbInput.style.borderColor = '#10B981';
+            }
+
+            // Show a toast only on first load (not every time)
+            if (!sessionStorage.getItem('livemode_toast_shown')) {
+                sessionStorage.setItem('livemode_toast_shown', '1');
+                showToast('🔗', 'Live Mode: using your real Google Calendar & Notion data.');
+            }
+        }
+    } catch (err) {
+        console.error('Config fetch error', err);
+    }
 }
 
-function saveSettings() {
+function updateModeBadge(isDemo) {
+    const badge = document.getElementById('mode-badge');
+    if (!badge) return;
+    if (isDemo) {
+        badge.textContent = 'Demo Mode';
+        badge.style.background = 'var(--agent-planner)';
+    } else {
+        badge.textContent = 'Live Mode 🔗';
+        badge.style.background = '#10B981';
+    }
+}
+
+async function saveSettings() {
     const token = document.getElementById('input-notion-token').value;
     const dbId = document.getElementById('input-notion-db').value;
+    const isDemo = document.getElementById('check-demo-mode').checked;
     
     localStorage.setItem('notion_token', token);
     localStorage.setItem('notion_db_id', dbId);
     
+    try {
+        // Sync demo mode to backend
+        const response = await fetch(`${API_BASE}/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ demo_mode: isDemo })
+        });
+        const config = await response.json();
+        updateModeBadge(config.demo_mode);
+        showToast('⚙️', `Settings saved. ${config.demo_mode ? 'Demo' : 'Live'} mode active.`);
+    } catch (e) {
+        showToast('❌', 'Failed to sync mode to backend.');
+    }
+    
     document.getElementById('modal-settings').classList.remove('active');
-    showToast('⚙️', 'Integration credentials saved locally.');
 }

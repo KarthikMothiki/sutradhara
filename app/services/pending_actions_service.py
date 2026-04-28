@@ -104,12 +104,29 @@ class PendingActionsService:
         return False
 
     def _generate_description(self, action_type: str, payload: dict) -> str:
+        insight = payload.get("insight", "")
+        insight_str = f"\n\n**Proactive Insight:** {insight}" if insight else ""
+
         if action_type == "create_event":
-            return f"Create a new event: **{payload.get('title')}** from {payload.get('start')} to {payload.get('end')}."
-        if action_type == "update_event":
-            return f"Update event **{payload.get('title', payload.get('eventId'))}**."
+            return f"Create a new event: **{payload.get('title')}** from {payload.get('start')} to {payload.get('end')}.{insight_str}"
+        
+        if action_type in ["update_event", "update_calendar"]:
+            start_time = payload.get("start", "")
+            time_str = f" to **{start_time}**" if start_time else ""
+            return f"Reschedule **{payload.get('title', 'this event')}**{time_str} to resolve a conflict.{insight_str}"
+            
         if action_type == "create_notion_page":
-            return f"Create a new Notion page: **{payload.get('title')}**."
+            return f"Create a new Notion page: **{payload.get('title')}** in your task database.{insight_str}"
+            
+        if action_type == "update_notion_page":
+            updates = []
+            if payload.get("status"): updates.append(f"status to **{payload.get('status')}**")
+            if payload.get("priority"): updates.append(f"priority to **{payload.get('priority')}**")
+            if payload.get("due_date"): updates.append(f"due date to **{payload.get('due_date')}**")
+            
+            update_str = ", ".join(updates)
+            return f"Update **{payload.get('title', 'this task')}**: set {update_str}.{insight_str}"
+
         return f"Execute {action_type} with payload {payload}"
 
     async def _execute_action(self, action: PendingAction) -> dict:
@@ -140,6 +157,17 @@ class PendingActionsService:
                     res = service.events().insert(calendarId='primary', body=body).execute()
                     return {"success": True, "id": res.get("id")}
                 
+                if action.action_type in ["update_event", "update_calendar"]:
+                    event_id = p.get("eventId")
+                    # Patch the event with new times if provided
+                    body = {}
+                    if p.get("start"): body["start"] = {"dateTime": p.get("start")}
+                    if p.get("end"): body["end"] = {"dateTime": p.get("end")}
+                    if p.get("title"): body["summary"] = p.get("title")
+                    
+                    res = service.events().patch(calendarId='primary', eventId=event_id, body=body).execute()
+                    return {"success": True, "id": res.get("id")}
+                
             elif action.service == "notion":
                 from app.auth.notion_auth import get_notion_client
                 client = get_notion_client()
@@ -147,14 +175,48 @@ class PendingActionsService:
                 
                 if action.action_type == "create_notion_page":
                     from app.config import get_settings
-                    db_id = get_settings().notion_database_id
+                    db_id = p.get("database_id") or get_settings().notion_database_id
+
+                    # Build properties — Notion has distinct types for Status vs Select
+                    props: dict = {
+                        "Name": {"title": [{"text": {"content": p.get("title", "New Task")}}]},
+                    }
+
+                    # Status property uses Notion's native "status" type (NOT "select")
+                    status_val = p.get("status", "To Do")
+                    props["Status"] = {"status": {"name": status_val}}
+
+                    # Priority is typically a Select property in Notion databases
+                    if p.get("priority"):
+                        props["Priority"] = {"select": {"name": p["priority"]}}
+
+                    # Due Date
+                    if p.get("due_date") or p.get("deadline"):
+                        date_str = p.get("due_date") or p.get("deadline")
+                        props["Due Date"] = {"date": {"start": date_str}}
+
                     res = await client.pages.create(
                         parent={"database_id": db_id},
-                        properties={
-                            "Name": {"title": [{"text": {"content": p.get("title")}}]},
-                            "Status": {"select": {"name": p.get("status", "To Do")}}
-                        }
+                        properties=props
                     )
+                    return {"success": True, "id": res.get("id")}
+
+                if action.action_type == "update_notion_page":
+                    page_id = p.get("page_id") or p.get("id")
+                    if not page_id:
+                        return {"error": "No page_id in payload for update_notion_page"}
+
+                    props = {}
+                    if p.get("status"):
+                        props["Status"] = {"status": {"name": p["status"]}}
+                    if p.get("priority"):
+                        props["Priority"] = {"select": {"name": p["priority"]}}
+                    if p.get("due_date"):
+                        props["Due Date"] = {"date": {"start": p["due_date"]}}
+                    if p.get("title"):
+                        props["Name"] = {"title": [{"text": {"content": p["title"]}}]}
+
+                    res = await client.pages.update(page_id=page_id, properties=props)
                     return {"success": True, "id": res.get("id")}
                     
             return {"error": f"Execution logic not implemented for {action.action_type}"}

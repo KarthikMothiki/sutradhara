@@ -96,6 +96,7 @@
                 <h2>THE THEATER <span class="badge">LIVE EXECUTION</span> <span class="badge-count" id="pending-count"
                         style="display:none">0</span></h2>
                 <div class="status-indicator">
+                    <span id="mode-badge" class="badge" style="background: var(--agent-planner); color: white; margin-right: 8px;">Demo Mode</span>
                     <span class="status-dot"></span>
                     <span class="status-text" id="status-text">Ready</span>
                 </div>
@@ -173,7 +174,12 @@
                     <label>Notion Database ID</label>
                     <input type="text" id="input-notion-db" placeholder="32 chars hex...">
                 </div>
-                <p class="text-muted small">These are stored locally in your browser for the demo.</p>
+                <div class="input-group toggle-group" style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="check-demo-mode" style="width: auto; margin: 0;">
+                    <label for="check-demo-mode" style="margin: 0; cursor: pointer;"><strong>Demo Mode (Mock Data)</strong></label>
+                </div>
+                <p class="text-muted small" style="margin-top: 10px;">When Demo Mode is active, safe mock data is used for judges. Turn it off to use your own integrations.</p>
+                <p class="text-muted small">Your Notion credentials are stored locally in your browser and never saved on the server.</p>
             </div>
             <footer>
                 <button id="btn-save-settings" class="btn-primary">Save & Connect</button>

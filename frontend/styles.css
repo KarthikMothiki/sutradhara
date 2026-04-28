@@ -388,6 +388,25 @@ body {
     font-weight: 500;
 }
 
+/* Status badge pills for history items */
+.badge-pill {
+    padding: 3px 8px;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+}
+.badge-pill.status-ok      { background: rgba(16,185,129,0.15); color: #10B981; }
+.badge-pill.status-err     { background: rgba(244,63,94,0.15);  color: #f43f5e; }
+.badge-pill.status-pending { background: rgba(99,102,241,0.15); color: #6366f1; }
+.badge-pill.priority-high  { background: rgba(244,63,94,0.15);  color: #f43f5e; }
+.badge-pill.priority-med   { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.badge-pill.priority-low   { background: rgba(16,185,129,0.15); color: #10B981; }
+.badge-pill.date           { background: rgba(99,102,241,0.1);  color: #818cf8; }
+.badge-pill.status         { background: rgba(99,102,241,0.1);  color: #818cf8; }
+
+
 /* ── Live Canvas (The Theater) ───────────────────────────── */
 .col-canvas {
     background: var(--bg-surface);
@@ -1006,3 +1025,149 @@ body {
 .node-start { fill: #6366f1; stroke: #4f46e5; }
 .node-end { fill: #10b981; stroke: #059669; }
 .node-generic { fill: #94a3b8; stroke: #64748b; }
+
+/* ── Structured Draft Card Styles ────────────────────────── */
+.card-badges {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.badge-pill {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-pill.priority-high { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+.badge-pill.priority-med { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+.badge-pill.priority-low { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+.badge-pill.date { background: rgba(99, 102, 241, 0.1); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.2); }
+.badge-pill.status { background: rgba(255, 255, 255, 0.05); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1); }
+
+.card-insight {
+    margin: 4px 0 12px 0;
+    padding: 12px;
+    background: rgba(99, 102, 241, 0.08);
+    border-radius: 8px;
+    border-left: 3px solid #6366f1;
+    display: flex;
+    gap: 10px;
+}
+
+.insight-icon { font-size: 1.1rem; flex-shrink: 0; }
+.insight-text { font-size: 0.85rem; color: #e2e8f0; font-style: italic; line-height: 1.5; }
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* ── Theatre Event & Task Row Styles ─────────────────────── */
+.event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.event-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border: 1px solid var(--border-glass);
+    transition: background 0.2s;
+}
+
+.event-row:hover { background: rgba(255,255,255,0.06); }
+
+.event-time-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #6366f1;
+    white-space: nowrap;
+    min-width: 110px;
+}
+
+.time-sep { color: var(--text-muted); font-weight: 400; }
+
+.event-info { flex: 1; min-width: 0; }
+
+.event-row-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-row-meta {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.task-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border: 1px solid var(--border-glass);
+    transition: background 0.2s;
+}
+
+.task-row:hover { background: rgba(255,255,255,0.06); }
+
+.task-checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid var(--border-strong);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.task-row:hover .task-checkbox { border-color: #6366f1; }
+
+.task-content { flex: 1; min-width: 0; }
+
+.task-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task-status-text {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}

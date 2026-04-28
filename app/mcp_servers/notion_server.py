@@ -254,9 +254,20 @@ async def _create_page(client, args: dict) -> list[TextContent]:
     # Add extra properties if provided
     if args.get("properties"):
         for key, value in args["properties"].items():
-            if isinstance(value, str):
-                # Assume it's a status or select property
-                properties[key] = {"status": {"name": value}}
+            if isinstance(value, dict):
+                # Already a fully-formed Notion property object — pass through
+                properties[key] = value
+            elif isinstance(value, str):
+                # Route to the correct Notion property type by convention:
+                #   "Status"   → native Notion Status type  ({"status": {"name": ...}})
+                #   "Priority" → Select property            ({"select": {"name": ...}})
+                #   anything else → try select first (safe default)
+                key_lower = key.lower()
+                if key_lower == "status":
+                    properties[key] = {"status": {"name": value}}
+                else:
+                    properties[key] = {"select": {"name": value}}
+
 
     page_data: dict[str, Any] = {
         "parent": {"database_id": database_id},
@@ -295,10 +306,15 @@ async def _update_page(client, args: dict) -> list[TextContent]:
     # Build property updates
     properties: dict[str, Any] = {}
     for key, value in updates.items():
-        if isinstance(value, str):
-            properties[key] = {"status": {"name": value}}
-        elif isinstance(value, dict):
+        if isinstance(value, dict):
             properties[key] = value
+        elif isinstance(value, str):
+            key_lower = key.lower()
+            if key_lower == "status":
+                properties[key] = {"status": {"name": value}}
+            else:
+                properties[key] = {"select": {"name": value}}
+
 
     result = await client.pages.update(page_id=page_id, properties=properties)
 
