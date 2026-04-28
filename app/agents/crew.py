@@ -34,7 +34,7 @@ from app.agents.tools.rollback_tools import (
     undo_last_action,
 )
 from app.agents.tools.visualization import generate_workflow_diagram
-from app.agents.tools.thought_tools import record_thought
+from app.agents.tools.thought_tools import record_thought, record_handoff
 
 from app.config import get_settings
 
@@ -45,6 +45,7 @@ import contextvars
 from sqlalchemy.ext.asyncio import AsyncSession
 ctx_conversation_id: contextvars.ContextVar[str] = contextvars.ContextVar("conversation_id")
 ctx_db: contextvars.ContextVar[AsyncSession] = contextvars.ContextVar("db")
+ctx_dna: contextvars.ContextVar[str] = contextvars.ContextVar("dna", default="")
 
 
 # ── Constants ───────────────────────────────────────────────────
@@ -102,21 +103,8 @@ def _build_agents() -> Agent:
     _iana_tz = _get_system_timezone()
     tz_display = f"{_iana_tz} (UTC{utc_offset_formatted})" if _iana_tz != "UTC" else f"UTC{utc_offset_formatted}"
 
-    # ── Inject Productivity DNA (Machine Learning Patterns) ──
-    try:
-        from app.database.engine import get_session_factory
-        from app.services.memory_service import memory_service
-        import asyncio
-        
-        # We need a temporary session to fetch context
-        factory = get_session_factory()
-        # Since this is likely inside a sync builder called from async, 
-        # we might need to handle the loop carefully or just use a placeholder
-        # In a real ADK flow, we'd pass this in via contextvars.
-        # For now, let's add a placeholder that the Manager can expand.
-        dna_context = "\n[SYSTEM NOTE: Your long-term memory shows the user tends to over-commit on Mondays. Adjust suggestions accordingly.]"
-    except ImportError:
-        dna_context = ""
+    # ── DNA context will be injected via ContextVar at runtime ──
+    dna_context = ctx_dna.get()
 
     # ── Inject current date/time context into all agent instructions ──
     date_context = (
@@ -126,6 +114,11 @@ def _build_agents() -> Agent:
         f"• Timezone: {tz_display}\n"
         f"• IANA timezone ID: {_iana_tz or 'UTC'}\n"
         f"{dna_context}\n\n"
+        f"LOOM TRACE DIRECTIVES (AGENT CORTEX):\n"
+        f"1. You MUST use `record_thought` before any major tool call or decision.\n"
+        f"2. You MUST use `record_handoff` whenever you delegate to a sub-agent.\n"
+        f"3. Make your thoughts and handoffs descriptive (e.g., 'Analyzing memory for Friday preferences...').\n"
+        f"This is critical for the visual 'The Loom' trace in the dashboard.\n\n"
         f"IMPORTANT RULES:\n"
         f"1. You already know today's date. When the user says 'tomorrow', "
         f"'next week', 'today', etc., resolve it to the actual date immediately. "
@@ -137,7 +130,8 @@ def _build_agents() -> Agent:
     )
 
     def _with_context(instruction: str) -> str:
-        return instruction + date_context
+        # Fetch DNA context at the last possible moment
+        return instruction + date_context.replace("{dna_context}", ctx_dna.get())
 
     # ── Calendar Specialist (with MCP tools) ────────────────
     calendar_tools = _get_calendar_function_tools()
@@ -241,6 +235,7 @@ def _build_agents() -> Agent:
             log_reversible_action,
             generate_workflow_diagram,
             record_thought,
+            record_handoff,
         ],
         output_key="last_response",
     )
@@ -886,43 +881,33 @@ async def run_agent_query(
     
     asyncio.create_task(_emit_start_trace())
 
-    # ── Inject User Memory/Preferences ──
-    processed_query = query
-    try:
-        from app.services.memory_service import memory_service
-        user_context = await memory_service.get_active_context(ctx_db.get())
-        if user_context:
-            processed_query = f"{user_context}\n\nUSER REQUEST: {query}"
-            logger.info("🧠 Injected long-term user memory into query")
-    except Exception as e:
-        logger.warning(f"Failed to inject user memory: {e}")
-
-    # Build the user message parts
-    parts = [Part(text=processed_query)]
-    if image_uris:
-        for uri in image_uris:
-            # Multi-modal support via GCS URIs
-            parts.append(Part(file_data={"file_uri": uri, "mime_type": "image/jpeg"}))
-
-    user_content = Content(
-        role="user",
-        parts=parts,
-    )
-
-    # Run the agent
-    response_text = ""
-    diagram = None
-
     try:
         from app.database.engine import get_session_factory
         from app.database.models import WorkflowRun, WorkflowRunStatus
         factory = get_session_factory()
         
         async with factory() as db_session:
-            # Set context for Draft-Approval workflow
+            # Set context for Draft-Approval and Memory
             token_conv = ctx_conversation_id.set(conversation_id or adk_session_id)
             token_db = ctx_db.set(db_session)
             
+            # ── Inject User Memory/Preferences (G6) ──
+            try:
+                from app.services.memory_service import memory_service
+                dna_text = await memory_service.get_productivity_dna(db_session)
+                ctx_dna.set(dna_text)
+                logger.info(f"🧠 Real-time DNA Injected: {dna_text[:50]}...")
+            except Exception as e:
+                logger.warning(f"Failed to inject user memory: {e}")
+
+            # Build the user message parts
+            parts = [Part(text=query)]
+            if image_uris:
+                for uri in image_uris:
+                    parts.append(Part(file_data={"file_uri": uri, "mime_type": "image/jpeg"}))
+
+            user_content = Content(role="user", parts=parts)
+
             try:
                 async for event in runner.run_async(
                     user_id=user_id,
@@ -1077,8 +1062,14 @@ async def run_agent_query(
                                         adk_session_id, "IMPACT_UPDATE", {"tasks_updated": 1, "minutes_reclaimed": 5}, author
                                     ))
                             elif tool_name == "record_thought":
-                                asyncio.create_task(trace_service.emit_agent_thought(
-                                    adk_session_id, author, res_data.get("thought", "")
+                                thought_text = res_data if isinstance(res_data, str) else str(res_data)
+                                asyncio.create_task(trace_service.emit_loom_event(
+                                    adk_session_id, author, "THOUGHT", thought_text
+                                ))
+                            elif tool_name == "record_handoff":
+                                handoff_text = res_data if isinstance(res_data, str) else str(res_data)
+                                asyncio.create_task(trace_service.emit_loom_event(
+                                    adk_session_id, author, "HANDOFF", handoff_text
                                 ))
 
             except Exception as inner_e:
