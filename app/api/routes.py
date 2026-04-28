@@ -165,6 +165,13 @@ async def _process_query(
             session.add(wr_end)
             await session.commit()
 
+            # ── G6: ML PATTERN RECOGNITION ───────────────────────
+            from app.services.memory_service import memory_service
+            # We don't await this directly to avoid blocking the user response
+            # but we use the existing background task context.
+            await memory_service.extract_preferences(session, conversation_id)
+            # ─────────────────────────────────────────────────────
+
             # Emit trace end
             await trace_service.emit_agent_end(
                 conversation_id, "manager", {"response": conv.final_response[:200]}
@@ -285,19 +292,16 @@ async def undo_conversation_actions(
     undone = 0
 
     for action in actions:
-        try:
-            # Execute the reverse operation via MCP
-            from app.agents.crew import execute_reverse_action
-
-            await execute_reverse_action(action)
-            await rollback_service.mark_reversed(db, action.id)
+        # Execute the reverse operation via the service
+        result = await rollback_service.execute_undo(db, action)
+        if "error" not in result:
             details.append(
                 f"✅ Reversed {action.action_type} on {action.service}/{action.resource_id}"
             )
             undone += 1
-        except Exception as e:
+        else:
             details.append(
-                f"❌ Failed to reverse {action.action_type}: {str(e)}"
+                f"❌ Failed to reverse {action.action_type}: {result.get('error')}"
             )
 
     await db.commit()

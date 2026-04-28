@@ -104,6 +104,56 @@ class RollbackService:
         """Get all actions to undo for a conversation (LIFO order)."""
         return await self.get_undoable_actions(session, conversation_id)
 
+    async def execute_undo(self, session: AsyncSession, action: ActionLog) -> dict:
+        """Perform the actual API call to reverse an action."""
+        from app.config import get_settings
+        if get_settings().demo_mode:
+            logger.info(f"🎭 DEMO MODE: Simulating undo of {action.action_type}")
+            await self.mark_reversed(session, action.id)
+            return {"success": True, "mode": "demo"}
+
+        try:
+            if action.service == "calendar":
+                from app.auth.google_auth import build_calendar_service
+                service = build_calendar_service()
+                
+                if action.action_type == "create_event":
+                    # Reverse: Delete the event
+                    service.events().delete(calendarId='primary', eventId=action.resource_id).execute()
+                    await self.mark_reversed(session, action.id)
+                    return {"success": True, "reversed": "deleted_event"}
+                
+                if action.action_type in ["update_event", "update_calendar"]:
+                    # Reverse: Patch back to original data
+                    if not action.reverse_data:
+                        return {"error": "No reverse data found for update"}
+                    service.events().patch(calendarId='primary', eventId=action.resource_id, body=action.reverse_data).execute()
+                    await self.mark_reversed(session, action.id)
+                    return {"success": True, "reversed": "restored_event"}
+
+            elif action.service == "notion":
+                from app.auth.notion_auth import get_notion_client
+                client = get_notion_client()
+                
+                if action.action_type == "create_notion_page":
+                    # Reverse: Archive the page
+                    await client.pages.update(page_id=action.resource_id, archived=True)
+                    await self.mark_reversed(session, action.id)
+                    return {"success": True, "reversed": "archived_page"}
+
+                if action.action_type == "update_notion_page":
+                    # Reverse: Patch back to original data
+                    if not action.reverse_data:
+                        return {"error": "No reverse data found for update"}
+                    await client.pages.update(page_id=action.resource_id, properties=action.reverse_data)
+                    await self.mark_reversed(session, action.id)
+                    return {"success": True, "reversed": "restored_page"}
+
+            return {"error": f"Undo logic not implemented for {action.service}/{action.action_type}"}
+        except Exception as e:
+            logger.error(f"Undo failed for action {action.id}: {e}")
+            return {"error": str(e)}
+
 
 # ── Singleton ───────────────────────────────────────────────────
 rollback_service = RollbackService()

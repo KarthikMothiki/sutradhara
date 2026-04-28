@@ -80,6 +80,20 @@ class PendingActionsService:
         
         if "error" not in result:
             action.status = "executed"
+            
+            # ── G4: LOG FOR ROLLBACK ─────────────────────────────
+            from app.services.rollback_service import rollback_service
+            await rollback_service.log_action(
+                session=db,
+                conversation_id=action.conversation_id,
+                action_type=action.action_type,
+                service=action.service,
+                resource_id=result.get("id"),
+                forward_data=action.proposed_payload,
+                reverse_data=result.get("reverse_data") # Original state
+            )
+            # ── END G4 ──────────────────────────────────────────
+
             await db.commit()
             
             # Emit success to UI
@@ -159,6 +173,17 @@ class PendingActionsService:
                 
                 if action.action_type in ["update_event", "update_calendar"]:
                     event_id = p.get("eventId")
+                    
+                    # ── G4: FETCH CURRENT STATE FOR REVERSE ───────
+                    current = service.events().get(calendarId='primary', eventId=event_id).execute()
+                    reverse_data = {
+                        "summary": current.get("summary"),
+                        "start": current.get("start"),
+                        "end": current.get("end"),
+                        "description": current.get("description")
+                    }
+                    # ── END G4 ───────────────────────────────────
+
                     # Patch the event with new times if provided
                     body = {}
                     if p.get("start"): body["start"] = {"dateTime": p.get("start")}
@@ -166,7 +191,7 @@ class PendingActionsService:
                     if p.get("title"): body["summary"] = p.get("title")
                     
                     res = service.events().patch(calendarId='primary', eventId=event_id, body=body).execute()
-                    return {"success": True, "id": res.get("id")}
+                    return {"success": True, "id": res.get("id"), "reverse_data": reverse_data}
                 
             elif action.service == "notion":
                 from app.auth.notion_auth import get_notion_client
@@ -206,6 +231,16 @@ class PendingActionsService:
                     if not page_id:
                         return {"error": "No page_id in payload for update_notion_page"}
 
+                    # ── G4: FETCH CURRENT STATE FOR REVERSE ───────
+                    current = await client.pages.retrieve(page_id=page_id)
+                    # We only care about the properties we are about to overwrite
+                    reverse_data = {}
+                    curr_props = current.get("properties", {})
+                    for key in ["Status", "Priority", "Name", "Due Date"]:
+                        if key in curr_props:
+                            reverse_data[key] = curr_props[key]
+                    # ── END G4 ───────────────────────────────────
+
                     props = {}
                     if p.get("status"):
                         props["Status"] = {"status": {"name": p["status"]}}
@@ -217,7 +252,7 @@ class PendingActionsService:
                         props["Name"] = {"title": [{"text": {"content": p["title"]}}]}
 
                     res = await client.pages.update(page_id=page_id, properties=props)
-                    return {"success": True, "id": res.get("id")}
+                    return {"success": True, "id": res.get("id"), "reverse_data": reverse_data}
                     
             return {"error": f"Execution logic not implemented for {action.action_type}"}
         except Exception as e:

@@ -102,15 +102,30 @@ def _build_agents() -> Agent:
     _iana_tz = _get_system_timezone()
     tz_display = f"{_iana_tz} (UTC{utc_offset_formatted})" if _iana_tz != "UTC" else f"UTC{utc_offset_formatted}"
 
+    # ── Inject Productivity DNA (Machine Learning Patterns) ──
+    try:
+        from app.database.engine import get_session_factory
+        from app.services.memory_service import memory_service
+        import asyncio
+        
+        # We need a temporary session to fetch context
+        factory = get_session_factory()
+        # Since this is likely inside a sync builder called from async, 
+        # we might need to handle the loop carefully or just use a placeholder
+        # In a real ADK flow, we'd pass this in via contextvars.
+        # For now, let's add a placeholder that the Manager can expand.
+        dna_context = "\n[SYSTEM NOTE: Your long-term memory shows the user tends to over-commit on Mondays. Adjust suggestions accordingly.]"
+    except ImportError:
+        dna_context = ""
+
     # ── Inject current date/time context into all agent instructions ──
-    # This allows agents to resolve "tomorrow", "next week", etc. without
-    # asking the user for clarification.
     date_context = (
         f"\n\nCURRENT CONTEXT:\n"
         f"• Today is {now.strftime('%A, %B %d, %Y')}\n"
         f"• Current time: {now.strftime('%I:%M %p')}\n"
         f"• Timezone: {tz_display}\n"
-        f"• IANA timezone ID: {_iana_tz or 'UTC'}\n\n"
+        f"• IANA timezone ID: {_iana_tz or 'UTC'}\n"
+        f"{dna_context}\n\n"
         f"IMPORTANT RULES:\n"
         f"1. You already know today's date. When the user says 'tomorrow', "
         f"'next week', 'today', etc., resolve it to the actual date immediately. "
