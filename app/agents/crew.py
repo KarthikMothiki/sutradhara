@@ -13,6 +13,7 @@ import asyncio
 import logging
 import os
 import sys
+from app.services.trace_service import trace_service
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -28,6 +29,8 @@ from app.agents.notion_specialist import NOTION_SPECIALIST_CONFIG
 from app.agents.planner import PLANNER_CONFIG
 from app.agents.focus_agent import FOCUS_AGENT_CONFIG
 from app.agents.anticipator import ANTICIPATOR_CONFIG
+from app.agents.research_specialist import RESEARCH_SPECIALIST_CONFIG
+from app.agents.tools.research_tools import google_search, scrape_website
 from app.agents.tools.rollback_tools import (
     log_reversible_action,
     undo_conversation_actions,
@@ -55,6 +58,7 @@ APP_NAME = "productivity-crew"
 _runner: Runner | None = None
 _session_service: InMemorySessionService | None = None
 _root_agent: Agent | None = None
+_last_model_chain: str | None = None
 
 
 def _get_system_timezone() -> str:
@@ -90,9 +94,13 @@ def _build_agents() -> Agent:
     model = _get_model()
     settings = get_settings()
 
-    # Set the Google API key for Gemini
-    if settings.google_api_key:
+    # Only set Google API key if we aren't using Vertex AI
+    if settings.google_api_key and not settings.google_cloud_project:
         os.environ["GOOGLE_API_KEY"] = settings.google_api_key
+        logger.info("⚡ Using AI Studio API Key")
+    elif settings.google_cloud_project:
+        os.environ.pop("GOOGLE_API_KEY", None)
+        logger.info(f"✨ Using Vertex AI Project: {settings.google_cloud_project}")
 
     logger.info(f"Building agent crew with model: {model}")
 
@@ -136,6 +144,7 @@ def _build_agents() -> Agent:
     # ── Calendar Specialist (with MCP tools) ────────────────
     calendar_tools = _get_calendar_function_tools()
     calendar_tools.append(record_thought)
+    calendar_tools.append(record_handoff)
 
     # Note: Each parent MUST have its own copy of a sub-agent in ADK
     calendar_agent_for_manager = Agent(
@@ -164,6 +173,7 @@ def _build_agents() -> Agent:
     # ── Notion Specialist (with MCP tools) ──────────────────
     notion_tools = _get_notion_function_tools()
     notion_tools.append(record_thought)
+    notion_tools.append(record_handoff)
 
     notion_agent_for_manager = Agent(
         name="notion_specialist",
@@ -195,7 +205,7 @@ def _build_agents() -> Agent:
         description=PLANNER_CONFIG["description"],
         instruction=_with_context(PLANNER_CONFIG["instruction"]),
         sub_agents=[calendar_agent_for_planner, notion_agent_for_planner],
-        tools=[generate_workflow_diagram],
+        tools=[generate_workflow_diagram, record_thought, record_handoff],
     )
     logger.info(f"✅ Created {planner_agent.name}")
 
@@ -203,6 +213,7 @@ def _build_agents() -> Agent:
     from app.agents.tools.focus_tools import get_focus_agent_tools
     focus_tools = get_focus_agent_tools()
     focus_tools.append(record_thought)
+    focus_tools.append(record_handoff)
     
     focus_agent_for_manager = Agent(
         name=FOCUS_AGENT_CONFIG["name"],
@@ -218,9 +229,21 @@ def _build_agents() -> Agent:
         description=ANTICIPATOR_CONFIG["description"],
         instruction=_with_context(ANTICIPATOR_CONFIG["instruction"]),
         sub_agents=[calendar_agent_for_anticipator, notion_agent_for_anticipator], # Dedicated copies
+        tools=[record_thought, record_handoff],
     )
     logger.info("✅ Created anticipator_agent")
     logger.info("✅ Created focus_agent")
+
+    # ── Research Specialist ─────────────────────────────────
+    research_tools = [google_search, scrape_website, record_thought]
+    research_agent = Agent(
+        name=RESEARCH_SPECIALIST_CONFIG["name"],
+        model=model,    
+        description=RESEARCH_SPECIALIST_CONFIG["description"],
+        instruction=_with_context(RESEARCH_SPECIALIST_CONFIG["instruction"]),
+        tools=research_tools,
+    )
+    logger.info("✅ Created research_specialist")
 
     # ── Manager (root agent — delegates to all) ─────────────
     manager_agent = Agent(
@@ -228,7 +251,7 @@ def _build_agents() -> Agent:
         model=model,
         description=MANAGER_CONFIG["description"],
         instruction=_with_context(MANAGER_CONFIG["instruction"]),
-        sub_agents=[calendar_agent_for_manager, notion_agent_for_manager, planner_agent, focus_agent_for_manager, anticipator_agent],
+        sub_agents=[calendar_agent_for_manager, notion_agent_for_manager, planner_agent, focus_agent_for_manager, anticipator_agent, research_agent],
         tools=[
             undo_last_action,
             undo_conversation_actions,
@@ -654,7 +677,7 @@ def _get_notion_function_tools() -> list:
         try:
             # ── DEMO MODE BYPASS ────────────────────────────────────
             if get_settings().demo_mode:
-                from app.services.trace_service import trace_service
+        
                 conv_id = ctx_conversation_id.get()
                 await trace_service.emit_loom_event(conv_id, "notion_specialist", "THOUGHT", f"Searching Notion for '{query}'...")
                 
@@ -724,7 +747,7 @@ def _get_notion_function_tools() -> list:
         try:
             # ── DEMO MODE BYPASS ────────────────────────────────────
             if get_settings().demo_mode:
-                from app.services.trace_service import trace_service
+        
                 conv_id = ctx_conversation_id.get()
                 
                 from app.services.demo_service import get_demo_notion
@@ -805,12 +828,40 @@ def _detect_conflicts(events: list[dict]) -> list[dict]:
     return conflicts
 
 def _get_runner() -> Runner:
-    """Get or create the ADK Runner (lazy initialization)."""
-    global _runner, _session_service, _root_agent
+    """Get or create the ADK Runner (lazy initialization) with Vertex AI forced."""
+    global _runner, _session_service, _root_agent, _last_model_chain
 
-    if _runner is None:
+    settings = get_settings()
+    current_chain = settings.model_fallback_chain
+
+    if _runner is None or current_chain != _last_model_chain:
+        if _runner is not None:
+            logger.info(f"🔄 Config change detected ({_last_model_chain} -> {current_chain})! Re-initializing Runner...")
+        
+        _last_model_chain = current_chain
+        
+        # Determine backend: Use Vertex AI if a project is provided
+        use_vertex = bool(settings.google_cloud_project)
+        
+        if use_vertex:
+            # CRITICAL: Completely scrub AI Studio identity
+            os.environ.pop("GOOGLE_API_KEY", None)
+            os.environ["GOOGLE_CLOUD_PROJECT"] = settings.google_cloud_project
+            os.environ["GOOGLE_CLOUD_LOCATION"] = settings.google_cloud_location or "us-central1"
+            
+            # ADK-specific force flags
+            os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
+            os.environ["ADK_USE_VERTEX"] = "true"
+            os.environ["ADK_GOOGLE_CLOUD_PROJECT"] = settings.google_cloud_project
+            
+            logger.info(f"✨ ENTERPRISE MODE: Using Vertex AI (Project: {settings.google_cloud_project})")
+        else:
+            logger.info("⚡ STANDARD MODE: Using AI Studio (Gemini API)")
+
         _session_service = InMemorySessionService()
         _root_agent = _build_agents()
+        
+        # Configure the Runner (ADK picks up Vertex config from environment variables)
         _runner = Runner(
             agent=_root_agent,
             app_name=APP_NAME,
@@ -846,6 +897,7 @@ async def run_agent_query(
 
     # Determine the ADK session ID to use
     adk_session_id = session_id or conversation_id or str(uuid.uuid4())
+    target_id = conversation_id or adk_session_id
 
     # Try to reuse an existing session for conversation continuity
     session = None
@@ -872,11 +924,11 @@ async def run_agent_query(
     # ── Synthetic Loom Trace (G3) ──
     async def _emit_start_trace():
         await asyncio.sleep(0.1)
-        from app.services.trace_service import trace_service
-        await trace_service.emit_loom_event(adk_session_id, "manager", "THOUGHT", f'Parsing intent: "{query[:60]}..."')
+
+        await trace_service.emit_loom_event(target_id, "manager", "THOUGHT", f'Parsing intent: "{query[:60]}..."')
         await asyncio.sleep(0.4)
         target = "scheduler" if any(k in query.lower() for k in ["calendar", "schedule", "meet", "time", "busy", "slot"]) else "notion"
-        await trace_service.emit_loom_event(adk_session_id, "manager", "DELEGATION", f"Orchestrating workflow → delegating to {target}_specialist")
+        await trace_service.emit_loom_event(target_id, "manager", "DELEGATION", f"Orchestrating workflow → delegating to {target}_specialist")
         await asyncio.sleep(0.3)
     
     asyncio.create_task(_emit_start_trace())
@@ -888,7 +940,7 @@ async def run_agent_query(
         
         async with factory() as db_session:
             # Set context for Draft-Approval and Memory
-            token_conv = ctx_conversation_id.set(conversation_id or adk_session_id)
+            token_conv = ctx_conversation_id.set(target_id)
             token_db = ctx_db.set(db_session)
             
             # ── Inject User Memory/Preferences (G6) ──
@@ -907,7 +959,8 @@ async def run_agent_query(
                     parts.append(Part(file_data={"file_uri": uri, "mime_type": "image/jpeg"}))
 
             user_content = Content(role="user", parts=parts)
-
+            response_text = ""
+            diagram = None
             try:
                 async for event in runner.run_async(
                     user_id=user_id,
@@ -917,160 +970,178 @@ async def run_agent_query(
                     # Collect the final response text
                     if event.content and event.content.parts:
                         for part in event.content.parts:
+                        # IDENTITY BEACON: Force the Loom to recognize this agent immediately
+                            event_agent = getattr(event, 'agent_name', 'manager')
+                            if event_agent != 'manager':
+                                asyncio.create_task(trace_service.emit_loom_event(target_id, event_agent, "THOUGHT", f"Agent {event_agent} is now active and processing..."))
+
                             if hasattr(part, "text") and part.text:
                                 response_text += part.text
                                 # G8: Stream response chunks in real-time
-                                from app.services.trace_service import trace_service
-                                asyncio.create_task(trace_service.emit_response_chunk(adk_session_id, part.text))
+
+                                asyncio.create_task(trace_service.emit_response_chunk(target_id, part.text))
 
                         
-                        # Deduce which specialist is acting based on the tool
-                        specialist_map = {
-                            "list_events": "calendar_specialist",
-                            "create_event": "calendar_specialist",
-                            "update_event": "calendar_specialist",
-                            "delete_event": "calendar_specialist",
-                            "find_free_slots": "calendar_specialist",
-                            "query_notion_database": "notion_specialist",
-                            "create_notion_page": "notion_specialist",
-                            "update_notion_page": "notion_specialist",
-                            "search_notion": "notion_specialist",
-                            "generate_workflow_diagram": "planner",
-                            "log_focus_progress": "focus_agent",
-                            "schedule_focus_time": "focus_agent",
-                            "get_priority_targets": "focus_agent",
-                            "undo_last_action": "manager",
-                            "undo_conversation_actions": "manager",
-                            "log_reversible_action": "manager",
-                            "transfer_to_agent": "manager"
-                        }
+                            # Deduce which specialist is acting based on the tool
+                            specialist_map = {
+                                "list_events": "calendar_specialist",
+                                "create_event": "calendar_specialist",
+                                "update_event": "calendar_specialist",
+                                "delete_event": "calendar_specialist",
+                                "find_free_slots": "calendar_specialist",
+                                "query_notion_database": "notion_specialist",
+                                "create_notion_page": "notion_specialist",
+                                "update_notion_page": "notion_specialist",
+                                "search_notion": "notion_specialist",
+                                "read_notion_page": "notion_specialist",
+                                "generate_workflow_diagram": "planner",
+                                "log_focus_progress": "focus_agent",
+                                "schedule_focus_time": "focus_agent",
+                                "get_priority_targets": "focus_agent",
+                                "google_search": "research_specialist",
+                                "scrape_website": "research_specialist",
+                                "record_thought": "manager",
+                                "record_handoff": "manager",
+                                "transfer_to_agent": "manager"
+                            }
 
-                        # Intercept the tool calls to save trace to DB and emit to Live Trace
-                        if getattr(part, "function_call", None):
-                            tool_name = part.function_call.name
-                            try:
-                                args = dict(part.function_call.args)
-                            except Exception:
-                                args = {}
-                            
-                            author = specialist_map.get(tool_name, "manager")
-
+                            # Intercept the tool calls to save trace to DB and emit to Live Trace
+                            if getattr(part, "function_call", None):
+                                tool_name = part.function_call.name
+                                try:
+                                    args = dict(part.function_call.args)
+                                except Exception:
+                                    args = {}
                                 
-                            from app.services.trace_service import trace_service
-                            asyncio.create_task(trace_service.emit_tool_call(
-                                adk_session_id, author, tool_name, args
-                            ))
-                            
-                            try:
-                                import json
-                                safe_args = args
+                                # Use the ADK event's agent name if available, fallback to tool mapping
+                                event_agent = getattr(event, "agent_name", None)
+                                author = event_agent or specialist_map.get(tool_name, "manager")
+
+
+
+                                # Automatically detect ADK sub-agent handoffs
+                                sub_agents = ["calendar_specialist", "notion_specialist", "planner", "focus_agent", "anticipator", "research_specialist"]
+                                if tool_name in sub_agents:
+                                    target_name = tool_name.replace("_", " ").title()
+                                    asyncio.create_task(trace_service.emit_loom_event(
+                                        adk_session_id, "manager", "HANDOFF", f"🤝 Handing off to **{target_name}** for execution..."
+                                    ))
+
+                                asyncio.create_task(trace_service.emit_tool_call(
+                                    adk_session_id, author, tool_name, args
+                                ))
+
                                 try:
-                                    json.dumps(args)
-                                except TypeError:
-                                    safe_args = {"raw": str(args)}
+                                    import json
+                                    safe_args = args
+                                    try:
+                                        json.dumps(args)
+                                    except TypeError:
+                                        safe_args = {"raw": str(args)}
 
-                                wr_tool = WorkflowRun(
-                                    conversation_id=conversation_id or adk_session_id,
-                                    agent_name=author,
-                                    tool_called=tool_name,
-                                    input_data=safe_args,
-                                    status=WorkflowRunStatus.COMPLETED
-                                )
-                                db_session.add(wr_tool)
-                                await db_session.commit()
-                            except Exception as db_err:
-                                logger.error(f"Failed to record tool WorkflowRun: {db_err}")
+                                    wr_tool = WorkflowRun(
+                                        conversation_id=target_id,
+                                        agent_name=author,
+                                        tool_called=tool_name,
+                                        input_data=safe_args,
+                                        status=WorkflowRunStatus.COMPLETED
+                                    )
+                                    db_session.add(wr_tool)
+                                    await db_session.commit()
+                                except Exception as db_err:
+                                    logger.error(f"Failed to record tool WorkflowRun: {db_err}")
 
-                            # Specific interception for generate_workflow_diagram tool
-                            if tool_name == "generate_workflow_diagram":
+                                # Specific interception for generate_workflow_diagram tool
+                                if tool_name == "generate_workflow_diagram":
+                                    try:
+                                        steps = args.get("steps", [])
+                                        title = args.get("title", "Workflow Plan")
+                                        # Call it synchronously to get the Mermaid string
+                                        d_res = generate_workflow_diagram(steps=steps, title=title)
+                                        if d_res and "diagram" in d_res and d_res["diagram"]:
+                                            diagram = d_res["diagram"]
+                                            json_data = d_res.get("json_data")
+                                            asyncio.create_task(trace_service.emit_workflow_diagram(target_id, diagram, json_data))
+                                    except Exception as call_err:
+                                        logger.error(f"Failed to intercept diagram parameters: {call_err}")
+
+                            # Intercept the tool results to emit to Live Trace and Canvas
+                            if getattr(part, "function_response", None):
+                                tool_name = part.function_response.name
                                 try:
-                                    steps = args.get("steps", [])
-                                    title = args.get("title", "Workflow Plan")
-                                    # Call it synchronously to get the Mermaid string
-                                    d_res = generate_workflow_diagram(steps=steps, title=title)
-                                    if d_res and "diagram" in d_res and d_res["diagram"]:
-                                        diagram = d_res["diagram"]
-                                        asyncio.create_task(trace_service.emit_workflow_diagram(adk_session_id, diagram))
-                                except Exception as call_err:
-                                    logger.error(f"Failed to intercept diagram parameters: {call_err}")
+                                    res_data = dict(part.function_response.response)
+                                except Exception:
+                                    res_data = {"raw": str(part.function_response.response)}
 
-                        # Intercept the tool results to emit to Live Trace and Canvas
-                        if getattr(part, "function_response", None):
-                            tool_name = part.function_response.name
-                            try:
-                                res_data = dict(part.function_response.response)
-                            except Exception:
-                                res_data = {"raw": str(part.function_response.response)}
-                            
-                            author = specialist_map.get(tool_name, "manager")
-                            from app.services.trace_service import trace_service
+                                author = specialist_map.get(tool_name, "manager")
 
-                            # Emit result to Loom (Trace)
-                            asyncio.create_task(trace_service.emit_tool_result(
-                                adk_session_id, author, tool_name, res_data
-                            ))
 
-                            # Emit to Canvas (Action Theater)
-                            if tool_name == "list_events":
-                                events = res_data.get("events", [])
-                                conflict_pairs = _detect_conflicts(events)
-                                if conflict_pairs:
-                                    for conflict in conflict_pairs:
+                                # Emit result to Loom (Trace)
+                                asyncio.create_task(trace_service.emit_tool_result(
+                                    adk_session_id, author, tool_name, res_data
+                                ))
+
+                                # Emit to Canvas (Action Theater)
+                                if tool_name == "list_events":
+                                    events = res_data.get("events", [])
+                                    conflict_pairs = _detect_conflicts(events)
+                                    if conflict_pairs:
+                                        for conflict in conflict_pairs:
+                                            asyncio.create_task(trace_service.emit_canvas_event(
+                                                adk_session_id, "CONFLICT_RED_ZONE", conflict, author
+                                            ))
+                                    else:
                                         asyncio.create_task(trace_service.emit_canvas_event(
-                                            adk_session_id, "CONFLICT_RED_ZONE", conflict, author
+                                            adk_session_id, "CALENDAR_DATA", res_data, author
                                         ))
-                                else:
+                                elif tool_name == "query_notion_database":
+                                    pages = res_data.get("pages", [])
+                                    tasks = [{
+                                        "title": p.get("title", "Untitled"),
+                                        "priority": p.get("priority", ""),
+                                        "status": p.get("status", ""),
+                                    } for p in pages]
                                     asyncio.create_task(trace_service.emit_canvas_event(
-                                        adk_session_id, "CALENDAR_DATA", res_data, author
+                                        adk_session_id, "NOTION_TASKS", {"tasks": tasks}, author
                                     ))
-                            elif tool_name == "query_notion_database":
-                                pages = res_data.get("pages", [])
-                                tasks = [{
-                                    "title": p.get("title", "Untitled"),
-                                    "priority": p.get("priority", ""),
-                                    "status": p.get("status", ""),
-                                } for p in pages]
-                                asyncio.create_task(trace_service.emit_canvas_event(
-                                    adk_session_id, "NOTION_TASKS", {"tasks": tasks}, author
-                                ))
 
-                            elif tool_name == "create_notion_page":
-                                asyncio.create_task(trace_service.emit_canvas_event(
-                                    adk_session_id, "DRAFT_ACTION", 
-                                    {"title": f"Create {res_data.get('title')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
-                                    author
-                                ))
-                                # G10 Polish: Auto-update impact metrics
-                                asyncio.create_task(trace_service.emit_canvas_event(
-                                    adk_session_id, "IMPACT_UPDATE", {"tasks_updated": 1, "minutes_reclaimed": 5}, author
-                                ))
-                            
-                            elif tool_name in ["create_event", "update_event"]:
-                                # Emit to Canvas
-                                asyncio.create_task(trace_service.emit_canvas_event(
-                                    adk_session_id, "DRAFT_ACTION", 
-                                    {"title": f"Calendar: {res_data.get('summary', 'Update')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
-                                    author
-                                ))
-                                # Auto-update impact metrics
-                                if "Focus" in str(res_data) or "Rescheduled" in str(res_data):
+                                elif tool_name == "create_notion_page":
                                     asyncio.create_task(trace_service.emit_canvas_event(
-                                        adk_session_id, "IMPACT_UPDATE", {"conflicts_resolved": 1, "minutes_reclaimed": 15}, author
+                                        adk_session_id, "DRAFT_ACTION", 
+                                        {"title": f"Create {res_data.get('title')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
+                                        author
                                     ))
-                                else:
+                                    # G10 Polish: Auto-update impact metrics
                                     asyncio.create_task(trace_service.emit_canvas_event(
                                         adk_session_id, "IMPACT_UPDATE", {"tasks_updated": 1, "minutes_reclaimed": 5}, author
                                     ))
-                            elif tool_name == "record_thought":
-                                thought_text = res_data if isinstance(res_data, str) else str(res_data)
-                                asyncio.create_task(trace_service.emit_loom_event(
-                                    adk_session_id, author, "THOUGHT", thought_text
-                                ))
-                            elif tool_name == "record_handoff":
-                                handoff_text = res_data if isinstance(res_data, str) else str(res_data)
-                                asyncio.create_task(trace_service.emit_loom_event(
-                                    adk_session_id, author, "HANDOFF", handoff_text
-                                ))
+
+                                elif tool_name in ["create_event", "update_event"]:
+                                    # Emit to Canvas
+                                    asyncio.create_task(trace_service.emit_canvas_event(
+                                        adk_session_id, "DRAFT_ACTION", 
+                                        {"title": f"Calendar: {res_data.get('summary', 'Update')}", "description": res_data.get("message"), "action_id": res_data.get("action_id")}, 
+                                        author
+                                    ))
+                                    # Auto-update impact metrics
+                                    if "Focus" in str(res_data) or "Rescheduled" in str(res_data):
+                                        asyncio.create_task(trace_service.emit_canvas_event(
+                                            adk_session_id, "IMPACT_UPDATE", {"conflicts_resolved": 1, "minutes_reclaimed": 15}, author
+                                        ))
+                                    else:
+                                        asyncio.create_task(trace_service.emit_canvas_event(
+                                            adk_session_id, "IMPACT_UPDATE", {"tasks_updated": 1, "minutes_reclaimed": 5}, author
+                                        ))
+                                elif tool_name == "record_thought":
+                                    thought_text = res_data if isinstance(res_data, str) else str(res_data)
+                                    asyncio.create_task(trace_service.emit_loom_event(
+                                        adk_session_id, author, "THOUGHT", thought_text
+                                    ))
+                                elif tool_name == "record_handoff":
+                                    handoff_text = res_data if isinstance(res_data, str) else str(res_data)
+                                    asyncio.create_task(trace_service.emit_loom_event(
+                                        adk_session_id, author, "HANDOFF", handoff_text
+                                    ))
 
             except Exception as inner_e:
                 logger.error(f"Error in runner.run_async loop: {inner_e}")
@@ -1092,8 +1163,8 @@ async def run_agent_query(
         if mermaid_match:
             diagram = mermaid_match.group(1).strip()
             # Optionally broadcast it instantly to any open WebSockets
-            from app.services.trace_service import trace_service
-            asyncio.create_task(trace_service.emit_workflow_diagram(adk_session_id, diagram))
+    
+            asyncio.create_task(trace_service.emit_workflow_diagram(target_id, diagram))
 
     # Save final result to DB and trigger memory extraction
     try:
@@ -1122,8 +1193,8 @@ async def run_agent_query(
 
     # ── Final Loom Synthesis (G3) ──
     async def _emit_end_trace():
-        from app.services.trace_service import trace_service
-        await trace_service.emit_loom_event(adk_session_id, "manager", "SYNTHESIS", "Synthesizing cross-app context for final briefing...")
+
+        await trace_service.emit_loom_event(target_id, "manager", "SYNTHESIS", "Synthesizing cross-app context for final briefing...")
     
     asyncio.create_task(_emit_end_trace())
 

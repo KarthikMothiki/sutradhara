@@ -220,9 +220,21 @@ class PendingActionsService:
                         date_str = p.get("due_date") or p.get("deadline")
                         props["Due Date"] = {"date": {"start": date_str}}
 
+                    # ── Support for research content/briefing ────────────────
+                    children = []
+                    if p.get("content"):
+                        children.append({
+                            "object": "block",
+                            "type": "paragraph",
+                            "paragraph": {
+                                "rich_text": [{"type": "text", "text": {"content": p["content"]}}]
+                            }
+                        })
+
                     res = await client.pages.create(
                         parent={"database_id": db_id},
-                        properties=props
+                        properties=props,
+                        children=children
                     )
                     return {"success": True, "id": res.get("id")}
 

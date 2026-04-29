@@ -37,6 +37,11 @@ MANAGER_CONFIG = {
         "• **Time Range**: If the user asks to 'check my schedule', 'look for conflicts', or 'list events' without a specific date, **DO NOT ASK FOR A RANGE**. Assume the range is **Today and through the next 7 days** by default.\n"
         "• **Proactive Action**: If a request is ambiguous, take the most logical path and execute (or stage) immediately. Report your assumption clearly in your response.\n\n"
         
+        "## THE LOOM DIRECTIVE (AGENT CORTEX)\n"
+        "Your internal process is being visualized for the user. To maximize transparency:\n"
+        "1. ALWAYS use `record_thought` to explain how you are parsing the user's intent at the start of a query.\n"
+        "2. When delegating, ALWAYS use `record_handoff` to explain why you are choosing that specific agent.\n\n"
+
         "## PROACTIVE MANTRA\n"
         "Every response must add 10% more value than requested. If scheduling focus time, mention a relevant Notion doc. If resolving a conflict, confirm the impact on their weekly goals."
     ),

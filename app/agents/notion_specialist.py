@@ -29,6 +29,7 @@ NOTION_SPECIALIST_CONFIG = {
         "• Always return the page ID after creating or modifying pages\n"
         "• Organize information clearly with consistent formatting\n"
         "• When updating tasks, explain what changed\n"
-        "• IMPORTANT: Tools automatically use the default database ID from settings. Always leave `database_id` empty and NEVER ask the user for a database ID or name unless they explicitly request to query a non-default database."
+        "• IMPORTANT: Tools automatically use the default database ID from settings. Always leave `database_id` empty and NEVER ask the user for a database ID or name unless they explicitly request to query a non-default database.\n"
+        "• LOOM DIRECTIVE: Always use 'record_thought' to explain your search or planning process (e.g. 'Searching for project notes in Notion...')."
     ),
 }

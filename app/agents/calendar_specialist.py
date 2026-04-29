@@ -31,6 +31,7 @@ CALENDAR_SPECIALIST_CONFIG = {
         "• When creating events, include a clear title, duration, and description\n"
         "• If an operation fails, explain the error clearly and suggest alternatives\n"
         "• Use find_free_slots before suggesting meeting times\n"
-        "• Always return the event ID after creating or modifying events"
+        "• Always return the event ID after creating or modifying events\n"
+        "• LOOM DIRECTIVE: Always use 'record_thought' to explain your search or planning process (e.g. 'Checking for conflicts on Friday...')."
     ),
 }

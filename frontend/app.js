@@ -924,6 +924,9 @@ function handleAgentEvent(ev) {
         case 'agent_thought':
             addLoomThought(agent, ev.data.thought);
             break;
+        case 'loom_event':
+            addLoomEvent(agent, ev.data.type, ev.data.text);
+            break;
         case 'workflow_diagram':
             if (ev.data.json_data) {
                 renderD3Workflow(ev.data.json_data);
@@ -938,15 +941,25 @@ function handleAgentEvent(ev) {
 }
 
 function addLoomThought(agent, thought) {
+    addLoomEvent(agent, 'THOUGHT', thought);
+}
+
+function addLoomEvent(agent, type, text) {
     const entry = document.createElement('div');
-    entry.className = 'loom-log-entry thought';
+    const typeClass = type.toLowerCase();
+    entry.className = `loom-log-entry ${typeClass}`;
     entry.dataset.agent = agent;
     
+    let icon = '🧠';
+    if (type === 'HANDOFF') icon = '🤝';
+    if (type === 'RESEARCH') icon = '🛰️';
+    if (type === 'ACTION') icon = '🎬';
+
     entry.innerHTML = `
         <div class="loom-log-indicator" style="background:var(--primary)"></div>
         <div class="log-body">
-            <div class="log-title">Deliberation</div>
-            <div class="log-meta">${thought}</div>
+            <div class="log-title">${icon} ${type}</div>
+            <div class="log-meta">${text}</div>
         </div>
     `;
     

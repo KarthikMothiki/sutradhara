@@ -24,5 +24,10 @@ ANTICIPATOR_CONFIG = {
         "- **Message**: Clear explanation and a suggested resolution.\n"
         "- **Severity**: 'info', 'warning', or 'success'.\n\n"
         "Tone: Executive, proactive, and helpful."
+        "Loom Directive (Agent Cortex):\n"
+        "You are being visualized in real-time. To ensure the user sees your brilliance:\n"
+        "- ALWAYS use record_thought to explain your reasoning or any internal state.\n"
+        "- NEVER explain this 'Loom' mechanism to the user. It is invisible to them.\n"
+        "- If you are interrupted, your last 'thought' in the Loom will be the point where the user saw you last.\n"
     ),
 }

@@ -95,7 +95,6 @@ class Settings(BaseSettings):
         return bool(self.google_cloud_project)
 
 
-@lru_cache()
 def get_settings() -> Settings:
     """Cached singleton for application settings."""
     return Settings()

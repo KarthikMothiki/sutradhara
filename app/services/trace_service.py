@@ -147,13 +147,16 @@ class TraceService:
         ))
 
     async def emit_workflow_diagram(
-        self, conversation_id: str, diagram: str
+        self, conversation_id: str, diagram: str, json_data: dict | None = None
     ) -> None:
         """Shorthand: emit a workflow_diagram event."""
+        payload = {"diagram": diagram}
+        if json_data:
+            payload["json_data"] = json_data
         await self.emit(TraceEvent(
             conversation_id=conversation_id,
             event_type="workflow_diagram",
-            data={"diagram": diagram},
+            data=payload,
             timestamp=datetime.now(timezone.utc),
         ))
 
