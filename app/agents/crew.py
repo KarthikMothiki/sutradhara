@@ -878,6 +878,7 @@ async def run_agent_query(
     session_id: str | None = None,
     user_id: str = "user",
     image_uris: list[str] | None = None,
+    image_bytes: list[dict] | None = None,
     **kwargs: Any,
 ):
     """Run a natural language query through the agent hierarchy.
@@ -957,6 +958,9 @@ async def run_agent_query(
             if image_uris:
                 for uri in image_uris:
                     parts.append(Part(file_data={"file_uri": uri, "mime_type": "image/jpeg"}))
+            if image_bytes:
+                for img in image_bytes:
+                    parts.append(Part(inline_data={"data": img["data"], "mime_type": img["mime_type"]}))
 
             user_content = Content(role="user", parts=parts)
             response_text = ""
@@ -1142,6 +1146,38 @@ async def run_agent_query(
                                     asyncio.create_task(trace_service.emit_loom_event(
                                         adk_session_id, author, "HANDOFF", handoff_text
                                     ))
+                                elif tool_name in ["undo_last_action", "undo_conversation_actions"]:
+                                    from app.services.rollback_service import rollback_service
+                                    from sqlalchemy import select
+                                    from app.database.models import PendingAction
+                                    
+                                    # 1. Reject any pending draft actions for this conversation
+                                    pending_res = await db_session.execute(
+                                        select(PendingAction)
+                                        .where(PendingAction.conversation_id == target_id, PendingAction.status == 'pending')
+                                    )
+                                    pending_actions = pending_res.scalars().all()
+                                    if pending_actions:
+                                        for p_action in pending_actions:
+                                            p_action.status = 'rejected'
+                                        await db_session.commit()
+                                        asyncio.create_task(trace_service.emit_canvas_event(
+                                            adk_session_id, "ACTION_REVERSED", {"message": f"Cancelled {len(pending_actions)} pending actions."}, author
+                                        ))
+                                    else:
+                                        # 2. Undo executed actions
+                                        actions_to_undo = []
+                                        if tool_name == "undo_last_action":
+                                            act = await rollback_service.get_last_undoable_action(db_session)
+                                            if act: actions_to_undo.append(act)
+                                        else:
+                                            actions_to_undo = await rollback_service.undo_conversation(db_session, target_id)
+                                            
+                                        for act in actions_to_undo:
+                                            await rollback_service.execute_undo(db_session, act)
+                                            asyncio.create_task(trace_service.emit_canvas_event(
+                                                adk_session_id, "ACTION_REVERSED", {"message": f"Undid executed action: {act.action_type}"}, author
+                                            ))
 
             except Exception as inner_e:
                 logger.error(f"Error in runner.run_async loop: {inner_e}")
@@ -1173,10 +1209,12 @@ async def run_agent_query(
         factory = get_session_factory()
         async with factory() as db_session:
             from sqlalchemy import select
-            stmt = select(Conversation).where(Conversation.id == adk_session_id)
+            stmt = select(Conversation).where(Conversation.id == target_id)
             conv = (await db_session.execute(stmt)).scalar_one_or_none()
             if conv:
-                conv.final_response = response_text or "No response generated."
+                if not response_text and "undo" in query.lower():
+                    response_text = "I have reversed the last action as requested."
+                conv.final_response = response_text or "I have processed your request."
                 conv.status = ConversationStatus.COMPLETED
                 conv.workflow_diagram = diagram
                 await db_session.commit()

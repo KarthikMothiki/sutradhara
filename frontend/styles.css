@@ -989,6 +989,62 @@ body {
     border: 1px solid var(--border-light);
     overflow: hidden;
     cursor: grab;
+    position: relative;
+}
+
+/* Expanded D3 Graph */
+#workflow-graph.expanded {
+    position: fixed;
+    top: 5vh;
+    left: 5vw;
+    right: 5vw;
+    bottom: 5vh;
+    width: 90vw !important;
+    height: 90vh !important;
+    z-index: 3000;
+    box-shadow: 0 0 100px rgba(0,0,0,0.9);
+    border: 2px solid var(--primary);
+}
+
+.btn-expand-graph {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    background: #1e293b;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    transition: all 0.2s;
+}
+
+.btn-expand-graph:hover {
+    background: #334155;
+    transform: scale(1.05);
+}
+
+.btn-expand-graph svg {
+    width: 20px;
+    height: 20px;
+}
+
+#workflow-graph-backdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    z-index: 2999;
+}
+#workflow-graph-backdrop.active {
+    display: block;
 }
 
 #workflow-graph:active {

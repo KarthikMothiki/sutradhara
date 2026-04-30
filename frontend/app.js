@@ -304,6 +304,9 @@ function toggleVoiceRecognition() {
     recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
+    
+    // Clear the input when starting a new recording
+    chatInput.value = '';
 
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -323,7 +326,7 @@ function toggleVoiceRecognition() {
     };
 
     recognition.onerror = (err) => {
-        console.error('Speech Error:', err);
+        console.error('Speech Error:', err.error || err);
         isRecording = false;
         btnVoice.classList.remove('active');
         updateStatus('ready', 'Ready');
@@ -588,21 +591,53 @@ async function renderWorkflow(diagram) {
 }
 
 function renderD3Workflow(data) {
-    workflowContainer.innerHTML = '<div id="workflow-graph"></div>';
+    const iconExpand = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`;
+    const iconCollapse = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`;
+    
+    workflowContainer.innerHTML = `<div id="workflow-graph"><button id="btn-expand-graph" class="btn-expand-graph" title="Expand Graph">${iconExpand}</button></div>`;
     const container = document.getElementById('workflow-graph');
-    const width = container.clientWidth;
-    const height = container.clientHeight || 400;
+    let width = container.clientWidth;
+    let height = container.clientHeight || 400;
 
     const svg = d3.select("#workflow-graph")
         .append("svg")
-        .attr("width", width)
-        .attr("height", height)
+        .attr("width", "100%")
+        .attr("height", "100%")
         .call(d3.zoom().on("zoom", (event) => {
             g.attr("transform", event.transform);
         }))
         .append("g");
 
     const g = svg.append("g");
+
+    // Expand logic
+    const btnExpand = document.getElementById('btn-expand-graph');
+    const backdrop = document.getElementById('workflow-graph-backdrop');
+    
+    btnExpand.addEventListener('click', () => {
+        container.classList.toggle('expanded');
+        backdrop.classList.toggle('active');
+        
+        if (container.classList.contains('expanded')) {
+            btnExpand.innerHTML = iconCollapse;
+            btnExpand.title = "Collapse Graph";
+        } else {
+            btnExpand.innerHTML = iconExpand;
+            btnExpand.title = "Expand Graph";
+        }
+        
+        // Re-center after transition
+        setTimeout(() => {
+            simulation.alpha(0.3).restart();
+        }, 300);
+    });
+    
+    backdrop.addEventListener('click', () => {
+        container.classList.remove('expanded');
+        backdrop.classList.remove('active');
+        btnExpand.innerHTML = iconExpand;
+        btnExpand.title = "Expand Graph";
+    });
 
     const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink(data.links).id(d => d.id).distance(120))

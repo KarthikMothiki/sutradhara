@@ -78,8 +78,15 @@ async def submit_query(
                     mime_type = "image/jpeg"
                 
                 content = base64.b64decode(data)
-                uri = await cloud_storage_service.upload_file(content, f"query_image_{i}.jpg", mime_type)
-                image_uris.append(uri)
+                
+                settings = get_settings()
+                if settings.google_cloud_bucket:
+                    uri = await cloud_storage_service.upload_file(content, f"query_image_{i}.jpg", mime_type)
+                    image_uris.append(uri)
+                else:
+                    if not hasattr(request, '_image_bytes'):
+                        request._image_bytes = []
+                    request._image_bytes.append({"data": content, "mime_type": mime_type})
             except Exception as e:
                 logger.error(f"Failed to process image {i}: {e}")
 
@@ -89,8 +96,9 @@ async def submit_query(
     settings.runtime_notion_db_id = request.notion_database_id
 
     # Launch the agent processing in the background
+    image_bytes = getattr(request, '_image_bytes', None)
     asyncio.create_task(
-        _process_query(conv_id, request.query, request.context, request.session_id, image_uris)
+        _process_query(conv_id, request.query, request.context, request.session_id, image_uris, image_bytes)
     )
 
     return QueryResponse(
@@ -104,6 +112,7 @@ async def _process_query(
     conversation_id: str, query: str, context: dict[str, Any] | None,
     session_id: str | None = None,
     image_uris: list[str] | None = None,
+    image_bytes: list[dict] | None = None,
 ):
     """Background task that runs the agent crew on a query."""
     from app.database.engine import get_session_factory
@@ -144,6 +153,7 @@ async def _process_query(
                 query=query,
                 conversation_id=conversation_id,
                 image_uris=image_uris,
+                image_bytes=image_bytes,
             )
 
             # Update conversation with result

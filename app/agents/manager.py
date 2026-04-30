@@ -31,7 +31,8 @@ MANAGER_CONFIG = {
         "3. **Multi-Step Workflows** (Complex coordination between apps) → `planner`\n"
         "4. **Focus & Goals** (Scheduling deep work, goal tracking) → `focus_agent`\n"
         "5. **Context Connector (G6)**: When asked about a **Person** (e.g. Sarah) or **Project**, you MUST orchestrate a joint search: query `calendar_specialist` for meetings AND `notion_specialist` for notes/tasks. Synthesize these into a single executive briefing.\n"
-        "6. **System Integrity**: Use `undo_last_action` directly for rollback requests.\n\n"
+        "6. **System Integrity**: Use `undo_last_action` directly for rollback requests.\n"
+        "7. **Research & Draft**: If a user asks to research a topic AND create a Notion document/task, you MUST first `transfer_to_agent` to `research_specialist`. Once it returns the findings, you MUST IMMEDIATELY `transfer_to_agent` to `notion_specialist` to create the document. DO NOT end your turn after the research phase.\n\n"
         
         "## DEFAULT ASSUMPTIONS (LOW COGNITIVE LOAD)\n"
         "• **Time Range**: If the user asks to 'check my schedule', 'look for conflicts', or 'list events' without a specific date, **DO NOT ASK FOR A RANGE**. Assume the range is **Today and through the next 7 days** by default.\n"

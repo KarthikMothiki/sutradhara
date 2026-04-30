@@ -67,6 +67,14 @@ cat "$ENV_FILE"
 echo "⏳ Building and pushing Docker image..."
 gcloud builds submit --tag "$IMAGE_NAME" .
 
+# Grant Vertex AI permissions
+echo "⏳ Granting Vertex AI permissions to default compute service account..."
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)")
+SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+    --member="serviceAccount:$SERVICE_ACCOUNT" \
+    --role="roles/aiplatform.user" || true
+
 # Deploy to Cloud Run
 echo "⏳ Deploying to Cloud Run..."
 gcloud run deploy "$SERVICE_NAME" \
